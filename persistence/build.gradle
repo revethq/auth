@@ -23,7 +23,11 @@ dependencies {
     implementation 'org.leadpony.justify:justify:3.1.0'
 
     implementation 'io.quarkus:quarkus-arc'
+
+    // Testing
     testImplementation 'io.quarkus:quarkus-junit5'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3'
+    testImplementation 'org.eclipse:yasson:3.0.3'
 
     implementation 'io.quarkus:quarkus-hibernate-orm-panache-common'
     implementation 'io.quarkus:quarkus-hibernate-orm-panache'
@@ -34,6 +38,12 @@ dependencies {
 
     // Security (password hashing)
     implementation group: 'org.springframework.security', name: 'spring-security-core', version: '6.2.1'
+
+    // Kotlin Coroutines for parallel SCIM delivery
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
+
+    // Quarkus Scheduler for SCIM polling processor
+    implementation 'io.quarkus:quarkus-scheduler'
 }
 
 group 'com.revethq.auth'

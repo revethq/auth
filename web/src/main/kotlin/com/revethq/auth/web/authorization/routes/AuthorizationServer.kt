@@ -35,6 +35,7 @@ import jakarta.ws.rs.BadRequestException
 import jakarta.ws.rs.Consumes
 import jakarta.ws.rs.GET
 import jakarta.ws.rs.Path
+import jakarta.ws.rs.PathParam
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
 import org.jboss.logging.Logger
@@ -195,7 +196,7 @@ abstract class AuthorizationServer : AuthorizationServerApi {
 
     @Path(".well-known/openid-configuration")
     @GET
-    fun getOpenIdConfiguration(authorizationServerId: UUID): Response {
+    fun getOpenIdConfiguration(@PathParam("authorizationServerId") authorizationServerId: UUID): Response {
         return getOpenIdConnectionWellKnown(authorizationServerId)
     }
 

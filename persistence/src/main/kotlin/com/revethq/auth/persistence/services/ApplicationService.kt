@@ -39,7 +39,6 @@ import com.revethq.auth.persistence.entities.ScopeReference
 import com.revethq.auth.persistence.entities.mappers.ApplicationMapper
 import com.revethq.auth.persistence.entities.mappers.ApplicationSecretMapper
 import com.revethq.auth.persistence.entities.mappers.ProfileMapper
-import io.quarkus.narayana.jta.QuarkusTransaction
 import io.quarkus.hibernate.orm.panache.PanacheQuery
 import io.quarkus.panache.common.Sort
 import jakarta.enterprise.context.ApplicationScoped
@@ -97,9 +96,8 @@ class ApplicationService(
         return Pair.create(application, profile)
     }
 
+    @Transactional
     override fun createApplication(application: Application, profile: Profile): Pair<Application, Profile> {
-        QuarkusTransaction.begin()
-
         // Generate ID for application since it doesn't use @GeneratedValue
         if (application.id == null) {
             application.id = UUID.randomUUID()
@@ -129,17 +127,15 @@ class ApplicationService(
             scopeReference.scopeReferenceType = ScopeReference.ScopeReferenceType.APPLICATION
             scopeReferenceRepository.persist(scopeReference)
         }
-        QuarkusTransaction.commit()
 
-        QuarkusTransaction.begin()
+        // Flush to ensure scopes are persisted before creating the event
+        applicationRepository.flush()
+
         val applicationProfilePair = Pair.create(
             ApplicationMapper.from(applicationRepository.findById(_application.id)),
             ProfileMapper.from(_profile)
         )
-        // TODO: This second transaction is wrong and not really needed. Have to save for the scopes to get added,
-        //  but that should not be that important for the even.
         eventRepository.createApplicationProfileEvent(applicationProfilePair, EventType.CREATE)
-        QuarkusTransaction.commit()
         return applicationProfilePair
     }
 
@@ -155,9 +151,9 @@ class ApplicationService(
             .map { ApplicationSecretMapper.from(it) }
     }
 
+    @Transactional
     @Throws(ApplicationNotFound::class)
     override fun createApplicationSecret(applicationSecret: ApplicationSecret): ApplicationSecret {
-        QuarkusTransaction.begin()
         val application = applicationRepository
             .findByIdOptional(applicationSecret.applicationId)
             .orElseThrow { ApplicationNotFound() }
@@ -180,7 +176,9 @@ class ApplicationService(
                 scopeReference
             }
         scopeReferenceRepository.persist(applicationSecretReferences)
-        QuarkusTransaction.commit()
+
+        // Flush to ensure references are persisted before refreshing
+        applicationSecretRepository.flush()
 
         // Refresh the secret to get the new scopes and add the actual secret string back on.
         val refreshedSecret = applicationSecretRepository.findById(_applicationSecret.id)

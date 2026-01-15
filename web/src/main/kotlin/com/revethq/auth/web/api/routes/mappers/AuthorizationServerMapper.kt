@@ -32,8 +32,8 @@ object AuthorizationServerMapper {
         authorizationServer.serverUrl = URI.create(request.serverUrl).toURL()
         authorizationServer.name = request.name
         authorizationServer.audience = request.audience
-        authorizationServer.authorizationCodeTokenExpiration = request.authorizationCodeTokenExpiration?.toLong()
-        authorizationServer.clientCredentialsTokenExpiration = request.clientCredentialsTokenExpiration?.toLong()
+        authorizationServer.authorizationCodeTokenExpiration = request.authorizationCodeTokenExpiration?.toLong() ?: 3600L
+        authorizationServer.clientCredentialsTokenExpiration = request.clientCredentialsTokenExpiration?.toLong() ?: 3600L
         authorizationServer.metadata = MetadataMapper.from(request.metadata)
         return authorizationServer
     }
@@ -45,8 +45,8 @@ object AuthorizationServerMapper {
             name = authorizationServer.name
             serverUrl = authorizationServer.serverUrl.toString()
             audience = authorizationServer.audience
-            authorizationCodeTokenExpiration = authorizationServer.authorizationCodeTokenExpiration?.toInt()
-            clientCredentialsTokenExpiration = authorizationServer.clientCredentialsTokenExpiration?.toInt()
+            authorizationCodeTokenExpiration = authorizationServer.authorizationCodeTokenExpiration.toInt()
+            clientCredentialsTokenExpiration = authorizationServer.clientCredentialsTokenExpiration.toInt()
             metadata = MetadataMapper.to(authorizationServer.metadata)
             scopes = authorizationServer.scopes?.map { ScopeMapper.toSummaryResponse(it) } ?: emptyList()
         }

@@ -33,15 +33,21 @@ import com.revethq.auth.core.domain.Scope
 import com.revethq.auth.core.domain.SigningKey
 import com.revethq.auth.core.domain.Template
 import com.revethq.auth.core.domain.User
+import com.revethq.auth.core.scim.ScimRelevantEvent
 import com.revethq.auth.persistence.entities.Event
 import com.revethq.auth.persistence.entities.EventType
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.enterprise.event.Event as CdiEvent
+import jakarta.inject.Inject
 import java.time.OffsetDateTime
 import java.util.UUID
 
 @ApplicationScoped
 class EventRepository : PanacheRepositoryBase<Event, UUID> {
+
+    @Inject
+    lateinit var scimEventEmitter: CdiEvent<ScimRelevantEvent>
     // TODO: Figure out how to version things.
     // TODO: DRY event creation, should be easier in Java 21.
 
@@ -183,6 +189,10 @@ class EventRepository : PanacheRepositoryBase<Event, UUID> {
         )
 
         persist(event)
+
+        // Fire SCIM-relevant event for User changes
+        fireScimEventIfRelevant(event)
+
         return event
     }
 
@@ -198,6 +208,10 @@ class EventRepository : PanacheRepositoryBase<Event, UUID> {
         event.resource = mapOf("group" to resource)
 
         persist(event)
+
+        // Fire SCIM-relevant event for Group changes
+        fireScimEventIfRelevant(event)
+
         return event
     }
 
@@ -213,7 +227,38 @@ class EventRepository : PanacheRepositoryBase<Event, UUID> {
         event.resource = mapOf("groupMember" to resource)
 
         persist(event)
+
+        // Fire SCIM-relevant event for GroupMember changes
+        fireScimEventIfRelevant(event)
+
         return event
+    }
+
+    /**
+     * Fires a CDI event for SCIM-relevant events (User, Group, GroupMember changes).
+     * This allows SCIM processors to observe and process these events.
+     */
+    private fun fireScimEventIfRelevant(event: Event) {
+        val resourceType = event.resourceType ?: return
+        if (!ScimRelevantEvent.isScimRelevant(resourceType)) {
+            return
+        }
+
+        val eventId = event.id ?: return
+        val resourceId = event.resourceId ?: return
+        val authServerId = event.authorizationServerId ?: return
+        val eventType = event.eventType?.name ?: return
+
+        val scimEvent = ScimRelevantEvent(
+            eventId = eventId,
+            resourceType = resourceType,
+            resourceId = resourceId,
+            authorizationServerId = authServerId,
+            eventType = eventType,
+            occurredAt = event.createdOn ?: OffsetDateTime.now()
+        )
+
+        scimEventEmitter.fire(scimEvent)
     }
 
     private fun convertToMap(obj: Any?): Map<String, Any> {
