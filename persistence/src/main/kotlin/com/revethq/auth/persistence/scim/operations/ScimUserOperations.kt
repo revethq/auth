@@ -19,7 +19,9 @@
 
 package com.revethq.auth.persistence.scim.operations
 
+import com.revethq.auth.core.domain.Profile
 import com.revethq.auth.core.domain.ScimApplication
+import com.revethq.auth.core.domain.User
 import com.revethq.auth.persistence.scim.client.ScimClient
 import com.revethq.auth.persistence.scim.client.ScimClientResponse
 import com.revethq.auth.persistence.scim.mappers.ScimUserMapper
@@ -47,11 +49,12 @@ class ScimUserOperations(
     fun createUser(
         scimApplication: ScimApplication,
         token: String,
-        userData: Map<String, Any>
+        user: User,
+        profile: Profile? = null
     ): ScimClientResponse {
         LOG.debug("Creating SCIM user for application ${scimApplication.id}")
 
-        val body = scimUserMapper.mapToScimUser(userData, scimApplication)
+        val body = scimUserMapper.mapToScimUser(user, profile, scimApplication)
         return scimClient.createResource(scimApplication, token, USERS_PATH, body)
     }
 
@@ -63,11 +66,12 @@ class ScimUserOperations(
         scimApplication: ScimApplication,
         token: String,
         scimResourceId: String,
-        userData: Map<String, Any>
+        user: User,
+        profile: Profile? = null
     ): ScimClientResponse {
         LOG.debug("Updating SCIM user $scimResourceId for application ${scimApplication.id}")
 
-        val body = scimUserMapper.mapToScimUser(userData, scimApplication, scimResourceId)
+        val body = scimUserMapper.mapToScimUser(user, profile, scimApplication, scimResourceId)
         return scimClient.replaceResource(scimApplication, token, USERS_PATH, scimResourceId, body)
     }
 

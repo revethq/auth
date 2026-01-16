@@ -19,57 +19,49 @@
 
 package com.revethq.auth.persistence.scim.mappers
 
+import com.revethq.auth.core.domain.Group
 import com.revethq.auth.core.domain.ScimApplication
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.json.bind.Jsonb
 import jakarta.json.bind.JsonbBuilder
-import org.jboss.logging.Logger
 
 /**
- * Maps Revet Auth group data to SCIM Group schema.
+ * Maps Revet Auth Group domain objects to SCIM Group schema.
  */
 @ApplicationScoped
 class ScimGroupMapper {
 
     companion object {
-        private val LOG = Logger.getLogger(ScimGroupMapper::class.java)
         private val SCIM_GROUP_SCHEMA = listOf("urn:ietf:params:scim:schemas:core:2.0:Group")
         private val SCIM_PATCH_OP_SCHEMA = listOf("urn:ietf:params:scim:api:messages:2.0:PatchOp")
-
-        // Default attribute mapping for groups
-        val DEFAULT_ATTRIBUTE_MAPPING = mapOf(
-            "displayName" to "$.name"
-        )
     }
 
     private val jsonb: Jsonb = JsonbBuilder.create()
 
     /**
-     * Maps group data to a SCIM Group create/update request body.
+     * Maps Group domain object to a SCIM Group request body.
      *
-     * @param groupData Map containing group data from the Event resource
-     * @param scimApplication SCIM application with attribute mapping configuration
-     * @param externalId Optional external ID for updates
+     * @param group Group domain object
+     * @param scimApplication SCIM application (unused, for future custom attribute mapping)
+     * @param scimResourceId Optional SCIM resource ID for updates
      * @return JSON string for SCIM request body
      */
     fun mapToScimGroup(
-        groupData: Map<String, Any>,
+        group: Group,
         scimApplication: ScimApplication,
-        externalId: String? = null
+        scimResourceId: String? = null
     ): String {
         val scimGroup = mutableMapOf<String, Any>(
             "schemas" to SCIM_GROUP_SCHEMA
         )
 
-        if (externalId != null) {
-            scimGroup["id"] = externalId
+        if (scimResourceId != null) {
+            scimGroup["id"] = scimResourceId
         }
 
-        // Extract displayName from group data
-        val groupName = extractValue(groupData, "$.name")
-        if (groupName != null) {
-            scimGroup["displayName"] = groupName
-        }
+        // Direct mapping from domain object
+        group.displayName?.let { scimGroup["displayName"] = it }
+        group.id?.let { scimGroup["externalId"] = it.toString() }
 
         return jsonb.toJson(scimGroup)
     }
@@ -113,25 +105,5 @@ class ScimGroupMapper {
             )
         )
         return jsonb.toJson(patchRequest)
-    }
-
-    /**
-     * Extracts a value from the group data using a simple JSONPath-like expression.
-     */
-    private fun extractValue(data: Map<String, Any>, path: String): Any? {
-        if (!path.startsWith("$.")) return path
-
-        val pathParts = path.removePrefix("$.").split(".")
-        var current: Any? = data
-
-        for (part in pathParts) {
-            current = when (current) {
-                is Map<*, *> -> current[part]
-                else -> null
-            }
-            if (current == null) break
-        }
-
-        return current
     }
 }

@@ -19,11 +19,14 @@
 
 package com.revethq.auth.persistence.scim.mappers
 
+import com.revethq.auth.core.domain.Group
 import com.revethq.auth.core.domain.ScimApplication
 import jakarta.json.bind.JsonbBuilder
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -47,57 +50,68 @@ class ScimGroupMapperTest {
         )
     }
 
-    @Test
-    fun `mapToScimGroup extracts group name as displayName`() {
-        val groupData = mapOf(
-            "name" to "Engineering Team"
-        )
-        val scimApp = createScimApplication()
+    // =========================================================================
+    // Domain Object Mapping Tests (Preferred API)
+    // =========================================================================
 
-        val json = mapper.mapToScimGroup(groupData, scimApp)
-        val result = jsonb.fromJson(json, Map::class.java)
+    @Nested
+    inner class DomainObjectMapping {
 
-        assertEquals("Engineering Team", result["displayName"])
+        @Test
+        fun `maps Group with displayName`() {
+            val group = Group(
+                id = UUID.randomUUID(),
+                displayName = "Engineering Team"
+            )
+            val scimApp = createScimApplication()
+
+            val json = mapper.mapToScimGroup(group, scimApp)
+            val result = jsonb.fromJson(json, Map::class.java)
+
+            assertEquals("Engineering Team", result["displayName"])
+            assertEquals(group.id.toString(), result["externalId"])
+        }
+
+        @Test
+        fun `includes SCIM Group schema`() {
+            val group = Group(displayName = "Test Group")
+            val scimApp = createScimApplication()
+
+            val json = mapper.mapToScimGroup(group, scimApp)
+            val result = jsonb.fromJson(json, Map::class.java)
+
+            @Suppress("UNCHECKED_CAST")
+            val schemas = result["schemas"] as List<String>
+            assertTrue(schemas.contains("urn:ietf:params:scim:schemas:core:2.0:Group"))
+        }
+
+        @Test
+        fun `includes SCIM resource ID when provided`() {
+            val group = Group(displayName = "Test Group")
+            val scimApp = createScimApplication()
+            val scimResourceId = "scim-group-456"
+
+            val json = mapper.mapToScimGroup(group, scimApp, scimResourceId)
+            val result = jsonb.fromJson(json, Map::class.java)
+
+            assertEquals(scimResourceId, result["id"])
+        }
+
+        @Test
+        fun `handles missing displayName gracefully`() {
+            val group = Group()
+            val scimApp = createScimApplication()
+
+            val json = mapper.mapToScimGroup(group, scimApp)
+            val result = jsonb.fromJson(json, Map::class.java)
+
+            assertNotNull(result["schemas"])
+        }
     }
 
-    @Test
-    fun `mapToScimGroup includes SCIM Group schema`() {
-        val groupData = mapOf("name" to "Test Group")
-        val scimApp = createScimApplication()
-
-        val json = mapper.mapToScimGroup(groupData, scimApp)
-        val result = jsonb.fromJson(json, Map::class.java)
-
-        @Suppress("UNCHECKED_CAST")
-        val schemas = result["schemas"] as List<String>
-        assertTrue(schemas.contains("urn:ietf:params:scim:schemas:core:2.0:Group"))
-    }
-
-    @Test
-    fun `mapToScimGroup includes external ID when provided`() {
-        val groupData = mapOf("name" to "Test Group")
-        val scimApp = createScimApplication()
-        val externalId = "scim-group-456"
-
-        val json = mapper.mapToScimGroup(groupData, scimApp, externalId)
-        val result = jsonb.fromJson(json, Map::class.java)
-
-        assertEquals(externalId, result["id"])
-    }
-
-    @Test
-    fun `mapToScimGroup handles missing name gracefully`() {
-        val groupData = emptyMap<String, Any>()
-        val scimApp = createScimApplication()
-
-        val json = mapper.mapToScimGroup(groupData, scimApp)
-        val result = jsonb.fromJson(json, Map::class.java)
-
-        // Should not throw, displayName simply won't be set
-        @Suppress("UNCHECKED_CAST")
-        val schemas = result["schemas"] as List<String>
-        assertTrue(schemas.isNotEmpty())
-    }
+    // =========================================================================
+    // Membership PATCH Tests
+    // =========================================================================
 
     @Test
     fun `mapToAddMemberPatch creates correct PATCH operation`() {

@@ -33,7 +33,10 @@ import com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import com.revethq.auth.core.domain.AuthorizationServer
+import com.revethq.auth.core.domain.Group
+import com.revethq.auth.core.domain.Profile
 import com.revethq.auth.core.domain.ScimApplication
+import com.revethq.auth.core.domain.User
 import com.revethq.auth.core.services.AuthorizationServerService
 import com.revethq.auth.core.services.ScimApplicationService
 import com.revethq.auth.core.services.ScimScopeService
@@ -108,15 +111,19 @@ class ScimProvisioningIntegrationTest {
         val scimApp = createScimApplication()
         val token = generateToken(scimApp)
 
-        val userData = mapOf(
-            "type" to "User",
-            "data" to mapOf(
-                "username" to "newuser",
-                "email" to "newuser@example.com"
+        val user = User(
+            id = UUID.randomUUID(),
+            username = "newuser",
+            email = "newuser@example.com"
+        )
+        val profile = Profile(
+            profile = mapOf(
+                "given_name" to "New",
+                "family_name" to "User"
             )
         )
 
-        val response = scimUserOperations.createUser(scimApp, token, userData)
+        val response = scimUserOperations.createUser(scimApp, token, user, profile)
 
         assertTrue(response.isSuccess)
         assertEquals(scimResourceId, response.scimResourceId)
@@ -136,15 +143,13 @@ class ScimProvisioningIntegrationTest {
         val scimApp = createScimApplication()
         val token = generateToken(scimApp)
 
-        val userData = mapOf(
-            "type" to "User",
-            "data" to mapOf(
-                "username" to "updateduser",
-                "email" to "updated@example.com"
-            )
+        val user = User(
+            id = UUID.randomUUID(),
+            username = "updateduser",
+            email = "updated@example.com"
         )
 
-        val response = scimUserOperations.updateUser(scimApp, token, scimResourceId, userData)
+        val response = scimUserOperations.updateUser(scimApp, token, scimResourceId, user)
 
         assertTrue(response.isSuccess)
 
@@ -202,14 +207,12 @@ class ScimProvisioningIntegrationTest {
         val scimApp = createScimApplication()
         val token = generateToken(scimApp)
 
-        val groupData = mapOf(
-            "type" to "Group",
-            "data" to mapOf(
-                "displayName" to "New Group"
-            )
+        val group = Group(
+            id = UUID.randomUUID(),
+            displayName = "New Group"
         )
 
-        val response = scimGroupOperations.createGroup(scimApp, token, groupData)
+        val response = scimGroupOperations.createGroup(scimApp, token, group)
 
         assertTrue(response.isSuccess)
         assertEquals(scimResourceId, response.scimResourceId)
@@ -229,14 +232,12 @@ class ScimProvisioningIntegrationTest {
         val scimApp = createScimApplication()
         val token = generateToken(scimApp)
 
-        val groupData = mapOf(
-            "type" to "Group",
-            "data" to mapOf(
-                "displayName" to "Updated Group"
-            )
+        val group = Group(
+            id = UUID.randomUUID(),
+            displayName = "Updated Group"
         )
 
-        val response = scimGroupOperations.updateGroup(scimApp, token, scimResourceId, groupData)
+        val response = scimGroupOperations.updateGroup(scimApp, token, scimResourceId, group)
 
         assertTrue(response.isSuccess)
 
@@ -310,8 +311,8 @@ class ScimProvisioningIntegrationTest {
         val scimApp = createScimApplication()
         val token = generateToken(scimApp)
 
-        val userData = mapOf("type" to "User", "data" to "test")
-        val response = scimUserOperations.createUser(scimApp, token, userData)
+        val user = User(username = "testuser", email = "test@example.com")
+        val response = scimUserOperations.createUser(scimApp, token, user)
 
         assertTrue(!response.isSuccess)
         assertTrue(response.isRetryable)
@@ -325,8 +326,8 @@ class ScimProvisioningIntegrationTest {
         val scimApp = createScimApplication()
         val token = generateToken(scimApp)
 
-        val userData = mapOf("type" to "User", "data" to "test")
-        val response = scimUserOperations.createUser(scimApp, token, userData)
+        val user = User(username = "testuser", email = "test@example.com")
+        val response = scimUserOperations.createUser(scimApp, token, user)
 
         assertTrue(!response.isSuccess)
         assertTrue(!response.isRetryable)
@@ -340,8 +341,8 @@ class ScimProvisioningIntegrationTest {
         val scimApp = createScimApplication()
         val token = generateToken(scimApp)
 
-        val userData = mapOf("type" to "User", "data" to "test")
-        val response = scimUserOperations.createUser(scimApp, token, userData)
+        val user = User(username = "testuser", email = "test@example.com")
+        val response = scimUserOperations.createUser(scimApp, token, user)
 
         assertTrue(!response.isSuccess)
         assertEquals(401, response.statusCode)
@@ -354,8 +355,8 @@ class ScimProvisioningIntegrationTest {
         val scimApp = createScimApplication()
         val token = generateToken(scimApp)
 
-        val userData = mapOf("type" to "User", "data" to "test")
-        val response = scimUserOperations.createUser(scimApp, token, userData)
+        val user = User(username = "testuser", email = "test@example.com")
+        val response = scimUserOperations.createUser(scimApp, token, user)
 
         assertTrue(!response.isSuccess)
         assertTrue(response.isRetryable)

@@ -19,6 +19,7 @@
 
 package com.revethq.auth.persistence.scim.operations
 
+import com.revethq.auth.core.domain.Group
 import com.revethq.auth.core.domain.ScimApplication
 import com.revethq.auth.persistence.scim.client.ScimClient
 import com.revethq.auth.persistence.scim.client.ScimClientResponse
@@ -47,11 +48,11 @@ class ScimGroupOperations(
     fun createGroup(
         scimApplication: ScimApplication,
         token: String,
-        groupData: Map<String, Any>
+        group: Group
     ): ScimClientResponse {
         LOG.debug("Creating SCIM group for application ${scimApplication.id}")
 
-        val body = scimGroupMapper.mapToScimGroup(groupData, scimApplication)
+        val body = scimGroupMapper.mapToScimGroup(group, scimApplication)
         return scimClient.createResource(scimApplication, token, GROUPS_PATH, body)
     }
 
@@ -63,11 +64,11 @@ class ScimGroupOperations(
         scimApplication: ScimApplication,
         token: String,
         scimResourceId: String,
-        groupData: Map<String, Any>
+        group: Group
     ): ScimClientResponse {
         LOG.debug("Updating SCIM group $scimResourceId for application ${scimApplication.id}")
 
-        val body = scimGroupMapper.mapToScimGroup(groupData, scimApplication, scimResourceId)
+        val body = scimGroupMapper.mapToScimGroup(group, scimApplication, scimResourceId)
         return scimClient.replaceResource(scimApplication, token, GROUPS_PATH, scimResourceId, body)
     }
 

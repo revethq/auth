@@ -19,65 +19,56 @@
 
 package com.revethq.auth.persistence.scim.mappers
 
+import com.revethq.auth.core.domain.Profile
 import com.revethq.auth.core.domain.ScimApplication
+import com.revethq.auth.core.domain.User
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.json.bind.Jsonb
 import jakarta.json.bind.JsonbBuilder
-import org.jboss.logging.Logger
 
 /**
- * Maps Revet Auth user data to SCIM User schema.
+ * Maps Revet Auth User/Profile domain objects to SCIM User schema.
  */
 @ApplicationScoped
 class ScimUserMapper {
 
     companion object {
-        private val LOG = Logger.getLogger(ScimUserMapper::class.java)
         private val SCIM_USER_SCHEMA = listOf("urn:ietf:params:scim:schemas:core:2.0:User")
         private val SCIM_PATCH_OP_SCHEMA = listOf("urn:ietf:params:scim:api:messages:2.0:PatchOp")
-
-        // Default attribute mapping from Revet Auth to SCIM
-        val DEFAULT_ATTRIBUTE_MAPPING = mapOf(
-            "userName" to "$.username",
-            "name.givenName" to "$.profile.given_name",
-            "name.familyName" to "$.profile.family_name",
-            "emails[0].value" to "$.email",
-            "emails[0].primary" to "true",
-            "active" to "$.active"
-        )
     }
 
     private val jsonb: Jsonb = JsonbBuilder.create()
 
     /**
-     * Maps user data to a SCIM User create/update request body.
+     * Maps User and Profile domain objects to a SCIM User request body.
      *
-     * @param userData Map containing user and profile data from the Event resource
-     * @param scimApplication SCIM application with attribute mapping configuration
-     * @param externalId Optional external ID for updates
+     * @param user User domain object
+     * @param profile Optional Profile domain object
+     * @param scimApplication SCIM application with optional custom attribute mapping
+     * @param scimResourceId Optional SCIM resource ID for updates
      * @return JSON string for SCIM request body
      */
     fun mapToScimUser(
-        userData: Map<String, Any>,
+        user: User,
+        profile: Profile? = null,
         scimApplication: ScimApplication,
-        externalId: String? = null
+        scimResourceId: String? = null
     ): String {
-        val attributeMapping = scimApplication.attributeMapping ?: DEFAULT_ATTRIBUTE_MAPPING
-
         val scimUser = mutableMapOf<String, Any>(
             "schemas" to SCIM_USER_SCHEMA
         )
 
-        if (externalId != null) {
-            scimUser["id"] = externalId
+        if (scimResourceId != null) {
+            scimUser["id"] = scimResourceId
         }
 
-        // Apply attribute mapping
-        for ((scimPath, sourcePath) in attributeMapping) {
-            val value = extractValue(userData, sourcePath)
-            if (value != null) {
-                setNestedValue(scimUser, scimPath, value)
-            }
+        // If custom attribute mapping is configured, use JSONPath extraction
+        if (scimApplication.attributeMapping != null) {
+            val userData = buildUserDataMap(user, profile)
+            applyAttributeMapping(userData, scimApplication.attributeMapping!!, scimUser)
+        } else {
+            // Use direct mapping for default case (more efficient)
+            applyDefaultMapping(user, profile, scimUser)
         }
 
         return jsonb.toJson(scimUser)
@@ -101,8 +92,72 @@ class ScimUserMapper {
     }
 
     /**
+     * Applies default mapping directly from domain objects.
+     */
+    private fun applyDefaultMapping(user: User, profile: Profile?, scimUser: MutableMap<String, Any>) {
+        // userName (required)
+        user.username?.let { scimUser["userName"] = it }
+
+        // externalId - use the Revet Auth user ID
+        user.id?.let { scimUser["externalId"] = it.toString() }
+
+        // emails
+        user.email?.let { email ->
+            scimUser["emails"] = listOf(
+                mapOf(
+                    "value" to email,
+                    "primary" to true
+                )
+            )
+        }
+
+        // name (from profile)
+        val profileData = profile?.profile
+        if (profileData != null) {
+            val name = mutableMapOf<String, Any>()
+            profileData["given_name"]?.let { name["givenName"] = it }
+            profileData["family_name"]?.let { name["familyName"] = it }
+            if (name.isNotEmpty()) {
+                scimUser["name"] = name
+            }
+        }
+    }
+
+    /**
+     * Builds a user data map from domain objects for custom attribute mapping.
+     * Structure: { "user": {...}, "profile": {...} }
+     */
+    private fun buildUserDataMap(user: User, profile: Profile?): Map<String, Any> {
+        val userMap = mutableMapOf<String, Any>()
+        user.id?.let { userMap["id"] = it.toString() }
+        user.username?.let { userMap["username"] = it }
+        user.email?.let { userMap["email"] = it }
+
+        val result = mutableMapOf<String, Any>("user" to userMap)
+        profile?.profile?.let { result["profile"] = it }
+
+        return result
+    }
+
+    /**
+     * Applies custom attribute mapping using JSONPath extraction.
+     */
+    private fun applyAttributeMapping(
+        data: Map<String, Any>,
+        attributeMapping: Map<String, String>,
+        scimUser: MutableMap<String, Any>
+    ) {
+        for ((scimPath, sourcePath) in attributeMapping) {
+            val value = extractValue(data, sourcePath)
+            if (value != null) {
+                setNestedValue(scimUser, scimPath, value)
+            }
+        }
+    }
+
+    /**
      * Extracts a value from the user data using a simple JSONPath-like expression.
-     * Supports paths like: $.username, $.profile.given_name, $.email
+     * Supports paths like: $.user.username, $.profile.given_name
      */
     private fun extractValue(data: Map<String, Any>, path: String): Any? {
         // Handle literal values
@@ -144,7 +199,6 @@ class ScimUserMapper {
                 @Suppress("UNCHECKED_CAST")
                 val array = current.getOrPut(arrayName) { mutableListOf<MutableMap<String, Any>>() } as MutableList<MutableMap<String, Any>>
 
-                // Ensure array has enough elements
                 while (array.size <= index) {
                     array.add(mutableMapOf())
                 }

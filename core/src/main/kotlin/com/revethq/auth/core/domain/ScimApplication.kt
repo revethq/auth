@@ -89,21 +89,24 @@ data class ScimApplication(
     companion object {
         /**
          * Default attribute mapping from Revet Auth User/Profile to SCIM Core User schema.
+         * Data structure: { "user": {...}, "profile": {...} }
          */
         val DEFAULT_USER_ATTRIBUTE_MAPPING = mapOf(
-            "userName" to "$.username",
+            "userName" to "$.user.username",
+            "externalId" to "$.user.id",
             "name.givenName" to "$.profile.given_name",
             "name.familyName" to "$.profile.family_name",
-            "emails[0].value" to "$.email",
-            "emails[0].primary" to "true",
-            "active" to "$.active"
+            "emails[0].value" to "$.user.email",
+            "emails[0].primary" to "true"
         )
 
         /**
          * Default attribute mapping for SCIM Group schema.
+         * Data structure: { "group": {...} }
          */
         val DEFAULT_GROUP_ATTRIBUTE_MAPPING = mapOf(
-            "displayName" to "$.name"
+            "displayName" to "$.group.displayName",
+            "externalId" to "$.group.id"
         )
     }
 }

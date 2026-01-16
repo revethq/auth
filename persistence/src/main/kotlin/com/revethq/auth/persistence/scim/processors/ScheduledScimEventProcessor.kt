@@ -19,9 +19,12 @@
 
 package com.revethq.auth.persistence.scim.processors
 
+import com.revethq.auth.core.domain.Group
+import com.revethq.auth.core.domain.Profile
 import com.revethq.auth.core.domain.ResourceType
 import com.revethq.auth.core.domain.ScimApplication
 import com.revethq.auth.core.domain.ScimDeliveryStatus
+import com.revethq.auth.core.domain.User
 import com.revethq.auth.core.scim.ScimDeleteAction
 import com.revethq.auth.core.scim.ScimEventProcessor
 import com.revethq.auth.core.scim.ScimOperation
@@ -222,15 +225,18 @@ class ScheduledScimEventProcessor(
     ): ScimClientResponse {
         val enabledOps = scimApplication.enabledOperations ?: emptySet()
 
-        @Suppress("UNCHECKED_CAST")
-        val userData = resourceData["user"] as? Map<String, Any> ?: resourceData
+        // Deserialize to domain objects
+        val (user, profile) = deserializeUserData(resourceData)
+        if (user == null) {
+            return ScimClientResponse(0, null, errorMessage = "Failed to deserialize user data")
+        }
 
         return when (eventType) {
             EventType.CREATE -> {
                 if (ScimOperation.CREATE_USER !in enabledOps) {
                     return ScimClientResponse(200, null) // Skip
                 }
-                scimUserOperations.createUser(scimApplication, token, userData)
+                scimUserOperations.createUser(scimApplication, token, user, profile)
             }
             EventType.UPDATE -> {
                 if (ScimOperation.UPDATE_USER !in enabledOps) {
@@ -242,7 +248,7 @@ class ScheduledScimEventProcessor(
                     event.resourceId!!
                 ) ?: return ScimClientResponse(0, null, errorMessage = "No SCIM mapping found for user")
 
-                scimUserOperations.updateUser(scimApplication, token, scimResourceId, userData)
+                scimUserOperations.updateUser(scimApplication, token, scimResourceId, user, profile)
             }
             EventType.DELETE -> {
                 val scimResourceId = scimResourceMappingService.getScimResourceId(
@@ -276,15 +282,18 @@ class ScheduledScimEventProcessor(
     ): ScimClientResponse {
         val enabledOps = scimApplication.enabledOperations ?: emptySet()
 
-        @Suppress("UNCHECKED_CAST")
-        val groupData = resourceData["group"] as? Map<String, Any> ?: resourceData
+        // Deserialize to domain object
+        val group = deserializeGroupData(resourceData)
+        if (group == null) {
+            return ScimClientResponse(0, null, errorMessage = "Failed to deserialize group data")
+        }
 
         return when (eventType) {
             EventType.CREATE -> {
                 if (ScimOperation.CREATE_GROUP !in enabledOps) {
                     return ScimClientResponse(200, null)
                 }
-                scimGroupOperations.createGroup(scimApplication, token, groupData)
+                scimGroupOperations.createGroup(scimApplication, token, group)
             }
             EventType.UPDATE -> {
                 if (ScimOperation.UPDATE_GROUP !in enabledOps) {
@@ -296,7 +305,7 @@ class ScheduledScimEventProcessor(
                     event.resourceId!!
                 ) ?: return ScimClientResponse(0, null, errorMessage = "No SCIM mapping found for group")
 
-                scimGroupOperations.updateGroup(scimApplication, token, scimResourceId, groupData)
+                scimGroupOperations.updateGroup(scimApplication, token, scimResourceId, group)
             }
             EventType.DELETE -> {
                 if (ScimOperation.DELETE_GROUP !in enabledOps) {
@@ -311,6 +320,45 @@ class ScheduledScimEventProcessor(
                 scimGroupOperations.deleteGroup(scimApplication, token, scimResourceId)
             }
         }
+    }
+
+    /**
+     * Deserializes user data from Event resource map to User and Profile domain objects.
+     */
+    private fun deserializeUserData(resourceData: Map<String, Any>): Pair<User?, Profile?> {
+        @Suppress("UNCHECKED_CAST")
+        val userData = resourceData["user"] as? Map<String, Any> ?: return Pair(null, null)
+
+        val user = User(
+            id = extractUuid(userData, "id"),
+            username = userData["username"] as? String,
+            email = userData["email"] as? String,
+            authorizationServerId = extractUuid(userData, "authorizationServerId")
+        )
+
+        @Suppress("UNCHECKED_CAST")
+        val profileData = resourceData["profile"] as? Map<String, Any>
+        val profile = if (profileData != null) {
+            Profile(profile = profileData)
+        } else {
+            null
+        }
+
+        return Pair(user, profile)
+    }
+
+    /**
+     * Deserializes group data from Event resource map to Group domain object.
+     */
+    private fun deserializeGroupData(resourceData: Map<String, Any>): Group? {
+        @Suppress("UNCHECKED_CAST")
+        val groupData = resourceData["group"] as? Map<String, Any> ?: return null
+
+        return Group(
+            id = extractUuid(groupData, "id"),
+            displayName = groupData["displayName"] as? String,
+            authorizationServerId = extractUuid(groupData, "authorizationServerId")
+        )
     }
 
     private fun executeGroupMemberOperation(
