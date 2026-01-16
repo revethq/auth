@@ -1,0 +1,67 @@
+[
+  {
+    "name": "com.revethq.core.Metadata",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true,
+    "unsafeAllocated": true
+  },
+  {
+    "name": "com.revethq.core.Identifier",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true,
+    "unsafeAllocated": true
+  },
+  {
+    "name": "com.revethq.core.SchemaValidation",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true,
+    "unsafeAllocated": true
+  },
+  {
+    "name": "com.revethq.iam.user.domain.MemberType",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true,
+    "unsafeAllocated": true
+  },
+  {
+    "name": "com.revethq.iam.user.domain.ProfileType",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true,
+    "allPublicFields": true,
+    "unsafeAllocated": true
+  },
+  {
+    "name": "java.util.ArrayList",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true
+  },
+  {
+    "name": "java.util.HashMap",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true
+  },
+  {
+    "name": "java.util.LinkedHashMap",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true
+  }
+]

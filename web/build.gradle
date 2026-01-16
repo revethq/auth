@@ -35,7 +35,13 @@ dependencies {
     implementation project(':core')
     implementation project(':persistence')
 
+    // Testing
     testImplementation 'io.quarkus:quarkus-junit5'
+    testImplementation 'io.rest-assured:rest-assured'
+    testImplementation 'io.rest-assured:kotlin-extensions'
+    testImplementation 'org.wiremock:wiremock:3.3.1'
+    testImplementation 'io.quarkus:quarkus-junit5-mockito'
+    testImplementation 'org.mockito.kotlin:mockito-kotlin:5.2.1'
 }
 
 group 'com.revethq.auth'
