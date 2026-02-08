@@ -10,16 +10,15 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.quarkus:quarkus-container-image-jib'
+    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+
     implementation 'io.quarkus:quarkus-kotlin'
     implementation 'org.jetbrains.kotlin:kotlin-stdlib'
     implementation 'io.quarkus:quarkus-hibernate-validator'
-
-    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
     implementation 'io.quarkus:quarkus-arc'
-    implementation 'io.quarkus:quarkus-resteasy-reactive'
-    implementation 'io.quarkus:quarkus-resteasy-reactive-jsonb'
-    implementation 'io.quarkus:quarkus-resteasy-reactive-qute'
+    implementation 'io.quarkus:quarkus-rest'
+    implementation 'io.quarkus:quarkus-rest-jsonb'
+    implementation 'io.quarkus:quarkus-rest-qute'
     implementation 'io.quarkus:quarkus-smallrye-openapi'
 
     // OpenAPI support
@@ -93,4 +92,13 @@ compileTestJava {
 // Handle duplicate META-INF/beans.xml files
 processResources {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Workaround for Quarkus Gradle bug: https://github.com/quarkusio/quarkus/issues/36506
+// Ensure core module directories exist before quarkusDev runs
+tasks.matching { it.name == 'quarkusDev' }.configureEach {
+    doFirst {
+        file("${project(':core').buildDir}/classes/java/main").mkdirs()
+        file("${project(':core').buildDir}/resources/main").mkdirs()
+    }
 }

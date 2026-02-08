@@ -39,7 +39,7 @@ class ScimTokenService(
     private val authorizationServerRepository: AuthorizationServerRepository,
     private val signingKeyRepository: SigningKeyRepository,
     private val authorizationServerService: AuthorizationServerService,
-    @ConfigProperty(name = "revet.scim.token.lifetime", defaultValue = "3600")
+    @param:ConfigProperty(name = "revet.scim.token.lifetime", defaultValue = "3600")
     private val defaultTokenLifetime: Long
 ) : com.revethq.auth.core.services.ScimTokenService {
 

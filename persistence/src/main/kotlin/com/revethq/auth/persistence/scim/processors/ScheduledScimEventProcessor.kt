@@ -67,7 +67,7 @@ class ScheduledScimEventProcessor(
     private val scimGroupOperations: ScimGroupOperations,
     private val scimResourceMappingService: ScimResourceMappingService,
     private val eventRepository: EventRepository,
-    @ConfigProperty(name = "revet.scim.enabled", defaultValue = "true")
+    @param:ConfigProperty(name = "revet.scim.enabled", defaultValue = "true")
     private val scimEnabled: Boolean
 ) : ScimEventProcessor {
 

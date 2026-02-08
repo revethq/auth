@@ -1,0 +1,41 @@
+# Stage 1: Build
+FROM registry.access.redhat.com/ubi9/openjdk-21:1.21 AS builder
+
+WORKDIR /build
+
+# Copy gradle files first for better caching
+COPY gradle gradle
+COPY gradlew settings.gradle gradle.properties ./
+COPY build.gradle ./
+COPY core/build.gradle core/
+COPY persistence/build.gradle persistence/
+COPY web/build.gradle web/
+
+# Download dependencies
+RUN ./gradlew dependencies --no-daemon
+
+# Copy source code
+COPY core/src core/src
+COPY persistence/src persistence/src
+COPY web/src web/src
+
+# Build the application
+RUN ./gradlew :web:quarkusBuild --no-daemon
+
+# Stage 2: Runtime (UBI 9 minimal with JRE)
+FROM registry.access.redhat.com/ubi9/openjdk-21-runtime:1.21
+
+ENV LANGUAGE='en_US:en'
+
+# Copy the quarkus application
+COPY --from=builder /build/web/build/quarkus-app/lib/ /deployments/lib/
+COPY --from=builder /build/web/build/quarkus-app/*.jar /deployments/
+COPY --from=builder /build/web/build/quarkus-app/app/ /deployments/app/
+COPY --from=builder /build/web/build/quarkus-app/quarkus/ /deployments/quarkus/
+
+EXPOSE 5000
+
+ENV JAVA_OPTS_APPEND="-Dquarkus.http.host=0.0.0.0"
+ENV JAVA_APP_JAR="/deployments/quarkus-run.jar"
+
+ENTRYPOINT [ "/opt/jboss/container/java/run/run-java.sh" ]

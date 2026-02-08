@@ -1,0 +1,42 @@
+# Stage 1: Build native executable
+FROM registry.access.redhat.com/ubi9/openjdk-21:1.21 AS builder
+
+WORKDIR /build
+
+# Install native-image prerequisites
+USER root
+RUN microdnf install -y gcc glibc-devel zlib-devel && microdnf clean all
+
+# Copy gradle files first for better caching
+COPY gradle gradle
+COPY gradlew settings.gradle gradle.properties ./
+COPY build.gradle ./
+COPY core/build.gradle core/
+COPY persistence/build.gradle persistence/
+COPY web/build.gradle web/
+
+# Download dependencies
+RUN ./gradlew dependencies --no-daemon
+
+# Copy source code
+COPY core/src core/src
+COPY persistence/src persistence/src
+COPY web/src web/src
+
+# Build native executable (uses container build internally)
+RUN ./gradlew :web:build -Dquarkus.native.enabled=true -Dquarkus.native.container-build=false --no-daemon
+
+# Stage 2: Runtime (UBI 9 micro - distroless)
+FROM registry.access.redhat.com/ubi9/ubi-micro:9.5
+
+WORKDIR /work
+
+# Copy native executable
+COPY --from=builder /build/web/build/*-runner /work/application
+
+# Set executable permissions
+RUN chmod 775 /work/application
+
+EXPOSE 5000
+
+CMD ["./application", "-Dquarkus.http.host=0.0.0.0"]

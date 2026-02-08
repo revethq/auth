@@ -34,7 +34,7 @@ import org.jboss.logging.Logger
 @Startup
 class ScimProcessorStartup(
     private val scheduledProcessor: ScheduledScimEventProcessor,
-    @ConfigProperty(name = "revet.scim.enabled", defaultValue = "true")
+    @param:ConfigProperty(name = "revet.scim.enabled", defaultValue = "true")
     private val scimEnabled: Boolean
 ) {
 

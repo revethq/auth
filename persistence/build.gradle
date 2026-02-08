@@ -10,10 +10,10 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.quarkus:quarkus-container-image-jib'
+    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+
     implementation 'io.quarkus:quarkus-kotlin'
     implementation 'org.jetbrains.kotlin:kotlin-stdlib'
-    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
 
     implementation project(path: ':core')
 
@@ -32,6 +32,9 @@ dependencies {
     implementation 'io.quarkus:quarkus-hibernate-orm-panache-common'
     implementation 'io.quarkus:quarkus-hibernate-orm-panache'
     implementation 'io.quarkus:quarkus-jdbc-postgresql'
+
+    // Jackson for Hibernate JSON column serialization
+    implementation 'io.quarkus:quarkus-jackson'
 
     // JOSE
     implementation 'io.quarkus:quarkus-smallrye-jwt-build'
@@ -81,11 +84,11 @@ test {
     systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
 }
 
-compileJava {
-    options.encoding = 'UTF-8'
-    options.compilerArgs << '-parameters'
-}
+//compileJava {
+//    options.encoding = 'UTF-8'
+//    options.compilerArgs << '-parameters'
+//}
 
-compileTestJava {
-    options.encoding = 'UTF-8'
-}
+//compileTestJava {
+//    options.encoding = 'UTF-8'
+//}
