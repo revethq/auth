@@ -38,7 +38,7 @@ import io.quarkus.panache.common.Sort
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.Transactional
 import org.jboss.logging.Logger
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import io.quarkus.elytron.security.common.BcryptUtil
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -205,8 +205,7 @@ class UserService(
     @Transactional
     override fun setPassword(user: User, password: String) {
         // TODO: This config should be pulled from the Authorization Server
-        val encoder = BCryptPasswordEncoder()
-        val passwordHash = encoder.encode(password)
+        val passwordHash = BcryptUtil.bcryptHash(password)
         val _user = userRepository
             .findByIdOptional(user.id)
             .orElseThrow { UserNotFound() }
@@ -220,7 +219,7 @@ class UserService(
         val user = userRepository
             .findByIdOptional(userId)
             .orElseThrow { UserNotFound() }
-        return BCryptPasswordEncoder().matches(password, user.passwordHash)
+        return BcryptUtil.matches(password, user.passwordHash)
     }
 
     private fun validateProfileAndUpdateUserMetadata(user: User, profile: Profile) {
