@@ -91,10 +91,8 @@ class EventRepository : PanacheRepositoryBase<Event, UUID> {
         event.resourceType = ResourceType.SIGNING_KEY
         event.resourceId = signingKey.id
         event.createdOn = OffsetDateTime.now()
-        val resource = convertToMap(signingKey).toMutableMap()
-        resource.remove("privateKey")
 
-        event.resource = mapOf("signingKey" to resource)
+        event.resource = mapOf("signingKey" to convertToMap(signingKey))
 
         persist(event)
         return event
@@ -262,11 +260,98 @@ class EventRepository : PanacheRepositoryBase<Event, UUID> {
     }
 
     private fun convertToMap(obj: Any?): Map<String, Any> {
-        // For event logging, we'll just store the object's toString representation
-        // This avoids circular reference issues and removes Jackson dependency
+        if (obj == null) return mapOf("type" to "null")
+
         val map = mutableMapOf<String, Any>()
-        map["type"] = obj?.javaClass?.simpleName ?: "null"
-        map["data"] = obj?.toString() ?: "null"
+        map["type"] = obj.javaClass.simpleName
+
+        when (obj) {
+            is SigningKey -> {
+                map["id"] = obj.id?.toString() ?: ""
+                map["authorizationServerId"] = obj.authorizationServerId?.toString() ?: ""
+                map["keyType"] = obj.keyType ?: ""
+                map["createdOn"] = obj.createdOn?.toString() ?: ""
+                // privateKey and publicKey intentionally excluded
+            }
+            is User -> {
+                map["id"] = obj.id?.toString() ?: ""
+                map["authorizationServerId"] = obj.authorizationServerId?.toString() ?: ""
+                map["username"] = obj.username ?: ""
+                map["email"] = obj.email ?: ""
+                map["createdOn"] = obj.createdOn?.toString() ?: ""
+                // password intentionally excluded
+            }
+            is ClientCode -> {
+                map["id"] = obj.id?.toString() ?: ""
+                map["clientId"] = obj.clientId ?: ""
+                map["authorizationServerId"] = obj.authorizationServerId?.toString() ?: ""
+                map["userId"] = obj.userId?.toString() ?: ""
+                map["redirectUri"] = obj.redirectUri ?: ""
+                map["createdOn"] = obj.createdOn?.toString() ?: ""
+                // code, codeChallenge, codeChallengeMethod, nonce, state intentionally excluded
+            }
+            is Application -> {
+                map["id"] = obj.id?.toString() ?: ""
+                map["clientId"] = obj.clientId ?: ""
+                map["name"] = obj.name ?: ""
+                map["authorizationServerId"] = obj.authorizationServerId?.toString() ?: ""
+                map["createdOn"] = obj.createdOn?.toString() ?: ""
+            }
+            is Client -> {
+                map["id"] = obj.id?.toString() ?: ""
+                map["name"] = obj.name ?: ""
+                map["authorizationServerId"] = obj.authorizationServerId?.toString() ?: ""
+                map["createdOn"] = obj.createdOn?.toString() ?: ""
+            }
+            is AuthorizationServer -> {
+                map["id"] = obj.id?.toString() ?: ""
+                map["name"] = obj.name ?: ""
+                map["serverUrl"] = obj.serverUrl?.toString() ?: ""
+                map["audience"] = obj.audience ?: ""
+                map["createdOn"] = obj.createdOn?.toString() ?: ""
+            }
+            is Group -> {
+                map["id"] = obj.id?.toString() ?: ""
+                map["authorizationServerId"] = obj.authorizationServerId?.toString() ?: ""
+                map["displayName"] = obj.displayName ?: ""
+                map["externalId"] = obj.externalId ?: ""
+                map["createdOn"] = obj.createdOn?.toString() ?: ""
+            }
+            is GroupMember -> {
+                map["id"] = obj.id?.toString() ?: ""
+                map["authorizationServerId"] = obj.authorizationServerId?.toString() ?: ""
+                map["groupId"] = obj.groupId?.toString() ?: ""
+                map["memberId"] = obj.memberId?.toString() ?: ""
+                map["memberType"] = obj.memberType?.toString() ?: ""
+                map["createdOn"] = obj.createdOn?.toString() ?: ""
+            }
+            is Template -> {
+                map["id"] = obj.id?.toString() ?: ""
+                map["authorizationServerId"] = obj.authorizationServerId?.toString() ?: ""
+                map["templateType"] = obj.templateType?.toString() ?: ""
+                map["createdOn"] = obj.createdOn?.toString() ?: ""
+                // template content intentionally excluded
+            }
+            is Schema -> {
+                map["id"] = obj.id?.toString() ?: ""
+                map["authorizationServerId"] = obj.authorizationServerId?.toString() ?: ""
+                map["name"] = obj.name ?: ""
+                map["createdOn"] = obj.createdOn?.toString() ?: ""
+            }
+            is Scope -> {
+                map["id"] = obj.id?.toString() ?: ""
+                map["name"] = obj.name ?: ""
+                map["createdOn"] = obj.createdOn?.toString() ?: ""
+                // authorizationServer reference excluded to avoid circular serialization
+            }
+            is Map<*, *> -> {
+                obj.forEach { (k, v) -> if (k != null) map[k.toString()] = v?.toString() ?: "" }
+            }
+            else -> {
+                map["data"] = obj.javaClass.simpleName
+            }
+        }
+
         return map
     }
 }
