@@ -22,12 +22,17 @@ package com.revethq.auth.persistence.repositories
 import com.revethq.auth.persistence.entities.ClientCode
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase
 import jakarta.enterprise.context.ApplicationScoped
+import java.time.OffsetDateTime
 import java.util.Optional
 import java.util.UUID
 
 @ApplicationScoped
 class ClientCodeRepository : PanacheRepositoryBase<ClientCode, UUID> {
     fun findByCode(code: String): Optional<ClientCode> {
-        return find("code = ?1", code).singleResultOptional()
+        return find("code = ?1 and expiresAt > ?2", code, OffsetDateTime.now()).singleResultOptional()
+    }
+
+    fun deleteByCode(code: String): Long {
+        return delete("code = ?1", code)
     }
 }

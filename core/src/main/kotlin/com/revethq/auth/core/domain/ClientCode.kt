@@ -27,6 +27,7 @@ data class ClientCode(
     var clientId: String? = null,
     var authorizationServerId: UUID? = null,
     var createdOn: OffsetDateTime? = null,
+    var expiresAt: OffsetDateTime? = null,
     var redirectUri: String? = null,
     var scopes: List<Scope>? = null,
     var state: String? = null,

@@ -42,6 +42,8 @@ import org.jboss.logging.Logger
 import java.net.URI
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
+import java.util.Base64
 import java.util.UUID
 
 abstract class AuthorizationServer : AuthorizationServerApi {
@@ -156,17 +158,12 @@ abstract class AuthorizationServer : AuthorizationServerApi {
             this.userId = userId
         }
 
-        LOG.error("We are about to call into the client service now")
         val code = clientService.createClientCode(authorizationServerId, clientCode)
 
         var redirectUrl = "$redirectUri?code=${URLEncoder.encode(code.code, StandardCharsets.UTF_8)}"
 
         if (code.state != null) {
             redirectUrl += "&state=${URLEncoder.encode(code.state, StandardCharsets.UTF_8)}"
-        }
-
-        if (code.nonce != null) {
-            redirectUrl += "&nonce=${URLEncoder.encode(code.nonce, StandardCharsets.UTF_8)}"
         }
 
         // Include the actual scopes that were validated and stored
@@ -212,9 +209,7 @@ abstract class AuthorizationServer : AuthorizationServerApi {
             tokenEndpointAuthMethodsSupported = listOf(WellKnown.TokenEndpointAuthMethodsSupportedEnum.POST.value()),
             idTokenSigningAlgValuesSupported = listOf(WellKnown.IdTokenSigningAlgValuesSupportedEnum.RS256.value()),
             responseTypesSupported = listOf(
-                WellKnown.ResponseTypesSupportedEnum.CODE.value(),
-                WellKnown.ResponseTypesSupportedEnum.CODE_ID_TOKEN.value(),
-                WellKnown.ResponseTypesSupportedEnum.TOKEN.value()
+                WellKnown.ResponseTypesSupportedEnum.CODE.value()
             ),
             codeChallengeMethodsSupported = listOf(WellKnown.CodeChallengeMethodsSupportedEnum.S256.value()),
             grantTypesSupported = listOf(
@@ -325,6 +320,21 @@ abstract class AuthorizationServer : AuthorizationServerApi {
         if (!redirectUriAllowed) {
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity("{\"error\":\"invalid_request\",\"error_description\":\"redirect_uri not registered for this client\"}")
+                .type(MediaType.APPLICATION_JSON)
+                .build()
+        }
+
+        // PKCE is required per OAuth 2.1 (RFC 9700 Section 4.8)
+        if (codeChallenge.isNullOrEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity("{\"error\":\"invalid_request\",\"error_description\":\"code_challenge is required\"}")
+                .type(MediaType.APPLICATION_JSON)
+                .build()
+        }
+
+        if (codeChallengeMethod.isNullOrEmpty() || codeChallengeMethod != "S256") {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity("{\"error\":\"invalid_request\",\"error_description\":\"code_challenge_method must be S256\"}")
                 .type(MediaType.APPLICATION_JSON)
                 .build()
         }
@@ -442,8 +452,36 @@ abstract class AuthorizationServer : AuthorizationServerApi {
                 val clientCode = clientService.getClientCode(accessTokenRequest.code ?: "")
                     ?: throw BadRequestException()
 
+                // Invalidate the code immediately (single-use per RFC 6749 Section 4.1.2)
+                clientService.deleteClientCode(accessTokenRequest.code!!)
+
+                // Verify code belongs to this authorization server
+                if (clientCode.authorizationServerId != authorizationServerId) {
+                    throw BadRequestException("authorization code does not belong to this server")
+                }
+
+                // Verify client ID binding
+                if (clientCode.clientId != requestClientId) {
+                    throw BadRequestException("client_id mismatch")
+                }
+
                 if (clientCode.redirectUri != accessTokenRequest.redirectUri) {
                     throw BadRequestException()
+                }
+
+                // PKCE code_verifier validation (RFC 7636 Section 4.6)
+                val codeChallenge = clientCode.codeChallenge
+                if (!codeChallenge.isNullOrEmpty()) {
+                    val codeVerifier = accessTokenRequest.codeVerifier
+                    if (codeVerifier.isNullOrEmpty()) {
+                        throw BadRequestException("code_verifier is required")
+                    }
+                    val digest = MessageDigest.getInstance("SHA-256")
+                    val computedChallenge = Base64.getUrlEncoder().withoutPadding()
+                        .encodeToString(digest.digest(codeVerifier.toByteArray(StandardCharsets.UTF_8)))
+                    if (computedChallenge != codeChallenge) {
+                        throw BadRequestException("invalid code_verifier")
+                    }
                 }
 
                 val codeUserId = clientCode.userId ?: throw BadRequestException("User ID is null")

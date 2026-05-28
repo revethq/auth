@@ -55,4 +55,6 @@ open class ClientCode {
     open var userId: UUID? = null
 
     open var nonce: String? = null
+
+    open var expiresAt: OffsetDateTime? = null
 }

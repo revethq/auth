@@ -277,7 +277,7 @@ class AuthorizationServerService(
 
         // Generate new access token
         val additionalClaims = HashMap<String, Any>()
-        additionalClaims["sub"] = storedToken.clientId!!
+        additionalClaims["sub"] = storedToken.userId!!.toString()
         additionalClaims["scope"] = ScopeService.scopeListToScopeString(scopes.mapNotNull { it.name })
         additionalClaims["exp"] = OffsetDateTime.now().plusSeconds(authorizationServer.authorizationCodeTokenExpiration ?: 3600L).toEpochSecond()
 

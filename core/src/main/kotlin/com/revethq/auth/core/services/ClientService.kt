@@ -44,4 +44,6 @@ interface ClientService {
 
     @Throws(ClientCodeNotFound::class)
     fun getClientCode(clientCode: String): ClientCode
+
+    fun deleteClientCode(code: String)
 }

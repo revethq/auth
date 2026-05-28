@@ -55,7 +55,8 @@ object ClientCodeMapper {
             redirectUri = clientCode.redirectUri,
             userId = clientCode.userId,
             scopes = scopes,
-            createdOn = clientCode.createdOn
+            createdOn = clientCode.createdOn,
+            expiresAt = clientCode.expiresAt
         )
     }
 
@@ -74,6 +75,7 @@ object ClientCodeMapper {
             userId = clientCode.userId
             scopeIds = clientCode.scopes?.mapNotNull { it.id } ?: emptyList()
             createdOn = clientCode.createdOn
+            expiresAt = clientCode.expiresAt
         }
     }
 }

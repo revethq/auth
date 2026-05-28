@@ -58,8 +58,6 @@ class ClientService(
     @Transactional
     override fun createClientCode(authorizationServerId: UUID, clientCode: ClientCode): ClientCode {
         var mutableClientCode = clientCode
-        val LOG = Logger.getLogger(ClientService::class.java)
-        LOG.error("We are going to try and create the client code now.")
         val client = clientRepository.findByClientId(clientCode.clientId ?: throw CodeChallengeBadData("Client ID is required"))
         if (client.isEmpty || client.get().authorizationServerId != authorizationServerId) {
             throw CodeChallengeBadData("Unable to find the Client with the credentials provided")
@@ -97,6 +95,7 @@ class ClientService(
         mutableClientCode.code = code
 
         mutableClientCode.createdOn = OffsetDateTime.now()
+        mutableClientCode.expiresAt = OffsetDateTime.now().plusMinutes(1)
         val _clientCode = ClientCodeMapper.to(mutableClientCode)
         clientCodeRepository.persist(_clientCode)
 
@@ -161,6 +160,11 @@ class ClientService(
         val fromIndex = page.offset().coerceAtMost(allEntities.size)
         val toIndex = (page.offset() + page.limit()).coerceAtMost(allEntities.size)
         return allEntities.subList(fromIndex, toIndex).map { ClientMapper.from(it) }
+    }
+
+    @Transactional
+    override fun deleteClientCode(code: String) {
+        clientCodeRepository.deleteByCode(code)
     }
 
     override fun createClient(client: Client): Client {
