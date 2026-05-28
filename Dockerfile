@@ -1,13 +1,14 @@
-# Build native executable first:
+# Use this Dockerfile after building the native executable locally:
 # ./gradlew :web:build -Dquarkus.native.enabled=true
 #
-# Then build container:
-# docker build -t revet/auth:native .
+# Then build the container:
+# docker build -f Dockerfile.native-prebuilt -t revet/auth:native .
 
-FROM registry.access.redhat.com/ubi9/ubi-micro:9.5
+FROM chainguard/wolfi-base 
 
 WORKDIR /work
 
+# Copy pre-built native executable
 COPY web/build/web-1.0-SNAPSHOT-runner /work/application
 
 EXPOSE 5000
