@@ -19,6 +19,7 @@
 
 package com.revethq.auth.core.domain
 
+import com.revethq.core.Metadata
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -30,7 +31,7 @@ data class SigningKey(
     var publicKey: String? = null,
     var createdOn: OffsetDateTime? = null,
     var updatedOn: OffsetDateTime? = null,
-    var metadata: HashMap<String, Any>? = null
+    var metadata: Metadata? = null
 ) {
     fun getAlgorithm(): String = "RS256"
 }

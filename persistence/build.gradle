@@ -19,8 +19,8 @@ dependencies {
 
     implementation 'jakarta.json.bind:jakarta.json.bind-api:3.0.1'
 
-    // JSON Schema validation (uses Jakarta JSON-P, no Jackson dependency)
-    implementation 'org.leadpony.justify:justify:3.1.0'
+    // JSON Schema validation (native-image compatible, same Vert.x version as Quarkus)
+    implementation 'io.vertx:vertx-json-schema:4.5.24'
 
     implementation 'io.quarkus:quarkus-arc'
 
@@ -35,6 +35,8 @@ dependencies {
 
     // Jackson for Hibernate JSON column serialization
     implementation 'io.quarkus:quarkus-jackson'
+    implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
     // JOSE
     implementation 'io.quarkus:quarkus-smallrye-jwt-build'
@@ -50,15 +52,15 @@ dependencies {
 }
 
 group 'com.revethq.auth'
-version '1.0-SNAPSHOT'
+version '0.1.0'
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
 }
 
 sourceSets {

@@ -1,6 +1,8 @@
 package com.revethq.auth.web.api.routes
 
 import com.revethq.auth.core.api.dto.Page
+import com.revethq.auth.web.api.routes.Constants.LIMIT_DEFAULT
+import com.revethq.auth.web.api.routes.Constants.OFFSET_DEFAULT
 import java.util.UUID
 
 object Pagination {

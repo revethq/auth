@@ -11,12 +11,13 @@ import jakarta.ws.rs.core.Response
 import org.eclipse.microprofile.openapi.annotations.Operation
 import org.eclipse.microprofile.openapi.annotations.media.Content
 import org.eclipse.microprofile.openapi.annotations.media.Schema
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses
 import org.eclipse.microprofile.openapi.annotations.tags.Tag
 import java.util.UUID
 
-@Path("/applications")
+@Path("/api/v1/applications")
 @Tag(name = "Applications")
 interface ApplicationsApi {
 
@@ -68,8 +69,8 @@ interface ApplicationsApi {
         )
     )
     fun listApplications(
-        @QueryParam("authorizationServerIds") authorizationServerIds: List<UUID>?,
-        @QueryParam("limit") limit: Int?,
-        @QueryParam("offset") offset: Int?
+        @QueryParam("authorizationServerIds") @Parameter(required = false) authorizationServerIds: List<UUID>?,
+        @QueryParam("limit") @Parameter(required = false) limit: Int?,
+        @QueryParam("offset") @Parameter(required = false) offset: Int?
     ): Response
 }

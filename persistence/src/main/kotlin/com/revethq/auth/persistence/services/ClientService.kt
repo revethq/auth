@@ -126,7 +126,7 @@ class ClientService(
         _client.updatedOn = OffsetDateTime.now()
         _client.scopes = client.scopes.orEmpty().map { ScopeMapper.to(it) }
         _client.name = client.name
-        _client.redirectUris = client.redirectUris
+        _client.redirectUris = client.redirectUris?.map { it.toString() }
         clientRepository.persist(_client)
         eventRepository.createClientEvent(ClientMapper.from(_client), EventType.UPDATE)
         return ClientMapper.from(_client)

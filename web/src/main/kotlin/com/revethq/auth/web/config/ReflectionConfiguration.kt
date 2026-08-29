@@ -19,6 +19,7 @@
 
 package com.revethq.auth.web.config
 
+import com.revethq.auth.persistence.config.KotlinJsonFormatMapper
 import com.revethq.core.Identifier
 import com.revethq.core.Metadata
 import com.revethq.core.SchemaValidation
@@ -32,6 +33,8 @@ import io.quarkus.runtime.annotations.RegisterForReflection
  * accessible via reflection at runtime.
  */
 @RegisterForReflection(targets = [
+    // Hibernate JSON FormatMapper (loaded via Class.forName)
+    KotlinJsonFormatMapper::class,
     // com.revethq.core
     Metadata::class,
     Identifier::class,

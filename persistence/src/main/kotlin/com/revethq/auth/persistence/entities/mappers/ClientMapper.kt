@@ -21,6 +21,7 @@ package com.revethq.auth.persistence.entities.mappers
 
 import com.revethq.auth.core.domain.Client
 import com.revethq.auth.persistence.entities.Client as PostgresClient
+import java.net.URI
 
 object ClientMapper {
     @JvmStatic
@@ -29,7 +30,7 @@ object ClientMapper {
             name = client.name,
             scopes = client.scopes?.map { ScopeMapper.fromNoAuthorizationServer(it) } ?: emptyList(),
             id = client.id,
-            redirectUris = client.redirectUris,
+            redirectUris = client.redirectUris?.map { URI.create(it) },
             authorizationServerId = client.authorizationServerId,
             metadata = client.metadata,
             updatedOn = client.updatedOn,
@@ -44,7 +45,7 @@ object ClientMapper {
             id = client.id
             // TODO: This should come from the client, this is just an oversight, please fix.
             clientId = client.id?.toString()
-            redirectUris = client.redirectUris
+            redirectUris = client.redirectUris?.map { it.toString() }
             authorizationServerId = client.authorizationServerId
             metadata = client.metadata
             updatedOn = client.updatedOn

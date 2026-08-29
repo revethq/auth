@@ -19,6 +19,7 @@
 
 package com.revethq.auth.persistence.entities
 
+import com.revethq.core.Metadata
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
@@ -49,7 +50,7 @@ open class SigningKey {
     open var updatedOn: OffsetDateTime? = null
 
     @JdbcTypeCode(SqlTypes.JSON)
-    open var metadata: HashMap<String, Any>? = null
+    open var metadata: Metadata? = null
 
     open val algorithm: String
         get() = "RS256"

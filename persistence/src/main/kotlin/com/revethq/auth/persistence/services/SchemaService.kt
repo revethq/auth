@@ -28,13 +28,16 @@ import com.revethq.auth.persistence.repositories.SchemaRepository
 import com.revethq.auth.persistence.entities.EventType
 import com.revethq.auth.persistence.entities.mappers.SchemaMapper
 import io.quarkus.panache.common.Sort
+import io.vertx.core.json.JsonObject
+import io.vertx.json.schema.Draft
+import io.vertx.json.schema.JsonSchema
+import io.vertx.json.schema.JsonSchemaOptions
+import io.vertx.json.schema.OutputUnit
+import io.vertx.json.schema.Validator
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.json.bind.JsonbBuilder
 import jakarta.transaction.Transactional
 import org.jboss.logging.Logger
-import org.leadpony.justify.api.JsonValidationService
-import org.leadpony.justify.api.ProblemHandler
-import java.io.StringReader
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -48,44 +51,42 @@ class SchemaService(
         private val LOG = Logger.getLogger(SchemaService::class.java)
     }
 
-    private val jsonValidationService: JsonValidationService = JsonValidationService.newInstance()
-
     override fun validateProfileAgainstSchema(profile: Profile, schema: Schema): Set<String> {
         val errors = mutableSetOf<String>()
 
         if (profile.profile == null) {
-            return errors // Nothing to validate
+            return errors
         }
 
         if (schema.schema == null) {
-            return errors // No schema to validate against
+            return errors
         }
 
         try {
-            // Convert schema Map to JSON string, then parse as JsonSchema
             val jsonb = JsonbBuilder.create()
-            val schemaJson = jsonb.toJson(schema.schema)
-            val jsonSchema = jsonValidationService.readSchema(StringReader(schemaJson))
+            val schemaJson = JsonObject(jsonb.toJson(schema.schema))
+            val jsonSchema = JsonSchema.of(schemaJson)
 
-            // Convert profile Map to JSON string
-            val profileJson = jsonb.toJson(profile.profile)
-
-            // Create a problem handler that collects errors
-            val problems = mutableListOf<org.leadpony.justify.api.Problem>()
-            val handler = ProblemHandler.collectingTo(problems)
-
-            // Validate the profile against the schema
-            jsonValidationService.createReader(
-                StringReader(profileJson),
-                jsonSchema,
-                handler
-            ).use { reader ->
-                reader.readValue()
+            val draft = when (schema.jsonSchemaVersion) {
+                "V4" -> Draft.DRAFT4
+                "V7" -> Draft.DRAFT7
+                "V201909" -> Draft.DRAFT201909
+                else -> Draft.DRAFT202012
             }
+            val validator = Validator.create(jsonSchema, JsonSchemaOptions().setDraft(draft))
 
-            // Convert Problem objects to error messages
-            for (problem in problems) {
-                errors.add(problem.message)
+            val profileJson = JsonObject(jsonb.toJson(profile.profile))
+            val result: OutputUnit = validator.validate(profileJson)
+
+            if (!result.valid) {
+                result.errors?.forEach { error ->
+                    val location = error.instanceLocation ?: ""
+                    val message = error.error ?: "validation failed"
+                    errors.add(if (location.isNotEmpty()) "$location: $message" else message)
+                }
+                if (errors.isEmpty()) {
+                    errors.add(result.error ?: "Schema validation failed")
+                }
             }
         } catch (e: Exception) {
             LOG.warn("Error validating profile against schema: ${e.message}", e)

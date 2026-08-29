@@ -111,7 +111,7 @@ class AuthorizationServerService(
 
             signingKey.keyType = "RSA"
             signingKey.authorizationServerId = authorizationServer.id
-            signingKey.metadata = HashMap()
+            signingKey.metadata = Metadata()
             signingKey.createdOn = OffsetDateTime.now()
             signingKey.updatedOn = OffsetDateTime.now()
 
@@ -503,8 +503,7 @@ class AuthorizationServerService(
                     schema.createdOn = OffsetDateTime.now()
                     schema.updatedOn = OffsetDateTime.now()
 
-                    val metadata = Metadata(emptyList(), null, emptyMap())
-                    schema.metadata = metadata
+                    schema.metadata = Metadata()
 
                     schemaService.createSchema(schema)
                 }

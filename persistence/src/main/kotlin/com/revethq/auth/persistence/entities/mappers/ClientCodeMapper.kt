@@ -29,11 +29,18 @@ object ClientCodeMapper {
     @JvmStatic
     fun from(clientCode: PostgresClientCode, scopeService: ScopeService): ClientCode {
         val scopes = if (!clientCode.scopeIds.isNullOrEmpty()) {
-            clientCode.scopeIds!!
+            @Suppress("UNCHECKED_CAST")
+            val rawIds = clientCode.scopeIds as List<Any>
+            rawIds
                 .filterNotNull()
                 .mapNotNull { scopeId ->
                     try {
-                        scopeService.getScope(scopeId)
+                        val uuid = when (scopeId) {
+                            is UUID -> scopeId
+                            is String -> UUID.fromString(scopeId)
+                            else -> return@mapNotNull null
+                        }
+                        scopeService.getScope(uuid)
                     } catch (e: Exception) {
                         System.err.println("Failed to load scope with ID: $scopeId - ${e.message}")
                         null

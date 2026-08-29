@@ -74,10 +74,10 @@ open class GroupMembers @Inject constructor(
 
     private fun getGroupMembersPage(groupId: UUID, limit: Int, offset: Int): PageDto {
         val page = PageDto()
-        val next = "/groups/$groupId/members?limit=$limit&offset=${offset + limit}"
+        val next = "/api/v1/groups/$groupId/members?limit=$limit&offset=${offset + limit}"
         page.next = next
         if (offset > 0) {
-            val previous = "/groups/$groupId/members?limit=$limit&offset=${offset - limit}"
+            val previous = "/api/v1/groups/$groupId/members?limit=$limit&offset=${offset - limit}"
             page.previous = previous
         }
         return page
