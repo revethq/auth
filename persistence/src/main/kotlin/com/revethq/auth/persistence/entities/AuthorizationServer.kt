@@ -26,6 +26,7 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.Id
 import jakarta.persistence.OneToMany
+import jakarta.persistence.Table
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
 import java.net.URL
@@ -33,6 +34,7 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 @Entity
+@Table(name = "revet_authorization_servers")
 open class AuthorizationServer {
     @Id
     @GeneratedValue

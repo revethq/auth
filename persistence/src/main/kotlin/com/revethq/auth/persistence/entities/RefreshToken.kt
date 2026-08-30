@@ -31,7 +31,7 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 @Entity
-@Table(name = "refresh_tokens")
+@Table(name = "revet_refresh_tokens")
 open class RefreshToken : PanacheEntityBase() {
     @Id
     @GeneratedValue

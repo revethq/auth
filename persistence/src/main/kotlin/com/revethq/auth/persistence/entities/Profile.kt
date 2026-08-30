@@ -31,7 +31,7 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 @Entity
-@Table(uniqueConstraints = [UniqueConstraint(columnNames = ["id", "profileType"])])
+@Table(name = "revet_profiles", uniqueConstraints = [UniqueConstraint(columnNames = ["id", "profileType"])])
 open class Profile {
     @Id
     @GeneratedValue

@@ -30,7 +30,7 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 @Entity
-@Table(name = "groups")
+@Table(name = "revet_groups")
 open class Group {
     @Id
     @GeneratedValue

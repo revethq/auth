@@ -29,12 +29,14 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
 import jakarta.persistence.OneToMany
+import jakarta.persistence.Table
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
 import java.time.OffsetDateTime
 import java.util.UUID
 
 @Entity
+@Table(name = "revet_applications")
 open class Application {
     @Id
     open var id: UUID? = null
@@ -49,7 +51,7 @@ open class Application {
     open var metadata: Metadata? = null
 
     @JoinTable(
-        name = "scopereference",
+        name = "revet_scope_references",
         joinColumns = [JoinColumn(
             name = "resourceId",
             foreignKey = ForeignKey(name = "none", value = ConstraintMode.NO_CONSTRAINT)

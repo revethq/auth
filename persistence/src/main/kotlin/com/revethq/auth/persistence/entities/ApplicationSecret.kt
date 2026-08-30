@@ -29,11 +29,13 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.JoinTable
 import jakarta.persistence.OneToMany
+import jakarta.persistence.Table
 import jakarta.persistence.Transient
 import java.time.OffsetDateTime
 import java.util.UUID
 
 @Entity
+@Table(name = "revet_application_secrets")
 open class ApplicationSecret {
     @Id
     @GeneratedValue
@@ -55,7 +57,7 @@ open class ApplicationSecret {
     open var expiresIn: Int? = null
 
     @JoinTable(
-        name = "scopereference",
+        name = "revet_scope_references",
         joinColumns = [JoinColumn(
             name = "resourceId",
             foreignKey = ForeignKey(name = "none", value = ConstraintMode.NO_CONSTRAINT)

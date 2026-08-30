@@ -40,11 +40,11 @@ import java.util.UUID
  */
 @Entity
 @Table(
-    name = "scim_application",
+    name = "revet_scim_applications",
     indexes = [
-        Index(name = "idx_scim_app_auth_server", columnList = "authorizationServerId"),
-        Index(name = "idx_scim_app_application", columnList = "applicationId"),
-        Index(name = "idx_scim_app_enabled", columnList = "enabled")
+        Index(name = "idx_revet_scim_app_auth_server", columnList = "authorizationServerId"),
+        Index(name = "idx_revet_scim_app_application", columnList = "applicationId"),
+        Index(name = "idx_revet_scim_app_enabled", columnList = "enabled")
     ]
 )
 open class ScimApplication {

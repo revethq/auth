@@ -30,7 +30,7 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 @Entity
-@Table(name = "group_members")
+@Table(name = "revet_group_members")
 open class GroupMember {
     @Id
     @GeneratedValue

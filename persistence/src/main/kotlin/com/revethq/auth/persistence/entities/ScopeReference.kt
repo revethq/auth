@@ -26,7 +26,7 @@ import jakarta.persistence.Table
 import java.util.UUID
 
 @Entity
-@Table
+@Table(name = "revet_scope_references")
 open class ScopeReference {
     enum class ScopeReferenceType {
         AUTHORIZATION_SERVER,

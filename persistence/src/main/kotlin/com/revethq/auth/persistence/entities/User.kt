@@ -30,7 +30,7 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 @Entity
-@Table(name = "users") // Postgres has a user table, so set this to users
+@Table(name = "revet_users")
 open class User {
     @Id
     @GeneratedValue

@@ -32,7 +32,7 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 @Entity
-@Table(uniqueConstraints = [UniqueConstraint(columnNames = ["authorizationServerId", "templateType"])])
+@Table(name = "revet_templates", uniqueConstraints = [UniqueConstraint(columnNames = ["authorizationServerId", "templateType"])])
 open class Template {
     @Id
     @GeneratedValue

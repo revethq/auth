@@ -36,12 +36,12 @@ import java.util.UUID
  */
 @Entity
 @Table(
-    name = "scim_delivery_status",
+    name = "revet_scim_delivery_statuses",
     indexes = [
-        Index(name = "idx_scim_delivery_event", columnList = "eventId"),
-        Index(name = "idx_scim_delivery_app", columnList = "scimApplicationId"),
-        Index(name = "idx_scim_delivery_status_retry", columnList = "status, nextRetryAt"),
-        Index(name = "idx_scim_delivery_created", columnList = "createdOn")
+        Index(name = "idx_revet_scim_delivery_event", columnList = "eventId"),
+        Index(name = "idx_revet_scim_delivery_app", columnList = "scimApplicationId"),
+        Index(name = "idx_revet_scim_delivery_status_retry", columnList = "status, nextRetryAt"),
+        Index(name = "idx_revet_scim_delivery_created", columnList = "createdOn")
     ]
 )
 open class ScimDeliveryStatus {

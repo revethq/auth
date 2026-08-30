@@ -31,7 +31,7 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 @Entity
-@Table(uniqueConstraints = [UniqueConstraint(columnNames = ["name", "authorizationServerId"])])
+@Table(name = "revet_schemas", uniqueConstraints = [UniqueConstraint(columnNames = ["name", "authorizationServerId"])])
 open class Schema {
     @Id
     @GeneratedValue

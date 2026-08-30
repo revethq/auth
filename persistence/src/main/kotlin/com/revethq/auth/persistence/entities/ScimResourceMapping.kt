@@ -37,16 +37,16 @@ import java.util.UUID
  */
 @Entity
 @Table(
-    name = "scim_resource_mapping",
+    name = "revet_scim_resource_mappings",
     uniqueConstraints = [
         UniqueConstraint(
-            name = "uk_scim_mapping_local_resource",
+            name = "uk_revet_scim_mapping_local_resource",
             columnNames = ["scimApplicationId", "localResourceType", "localResourceId"]
         )
     ],
     indexes = [
-        Index(name = "idx_scim_mapping_app", columnList = "scimApplicationId"),
-        Index(name = "idx_scim_mapping_local", columnList = "localResourceType, localResourceId")
+        Index(name = "idx_revet_scim_mapping_app", columnList = "scimApplicationId"),
+        Index(name = "idx_revet_scim_mapping_local", columnList = "localResourceType, localResourceId")
     ]
 )
 open class ScimResourceMapping {

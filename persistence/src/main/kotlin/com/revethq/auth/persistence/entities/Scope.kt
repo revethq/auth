@@ -36,6 +36,7 @@ import java.util.UUID
 
 @Entity
 @Table(
+    name = "revet_scopes",
     uniqueConstraints = [UniqueConstraint(columnNames = ["authorizationserverid", "name"])]
 )
 open class Scope {
