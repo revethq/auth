@@ -31,8 +31,10 @@ open class ScopeReference {
     enum class ScopeReferenceType {
         AUTHORIZATION_SERVER,
         APPLICATION,
+        @Deprecated("Use CREDENTIAL instead. Kept for ordinal stability.")
         APPLICATION_SECRET,
-        CLIENT
+        CLIENT,
+        CREDENTIAL
     }
 
     @Id

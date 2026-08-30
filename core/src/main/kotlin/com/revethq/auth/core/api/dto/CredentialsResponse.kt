@@ -17,6 +17,15 @@
  * THE SOFTWARE.
  */
 
-package com.revethq.auth.core.exceptions.notfound
+package com.revethq.auth.core.api.dto
 
-class ApplicationSecretNotFound : RuntimeException("The Application Secret was not found")
+import jakarta.json.bind.annotation.JsonbNillable
+import jakarta.validation.constraints.NotNull
+
+@JsonbNillable(false)
+data class CredentialsResponse(
+    var credentials: List<CredentialResponse>? = null,
+
+    @field:NotNull
+    var page: Page? = null
+)

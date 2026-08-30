@@ -25,22 +25,30 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 @JsonbNillable(false)
-data class ApplicationSecretResponse(
+data class CredentialResponse(
     var id: UUID? = null,
 
-    var clientSecret: String? = null,
-
-    var name: String? = null,
-
-    var expiresIn: Int? = null,
+    var userId: UUID? = null,
 
     var applicationId: UUID? = null,
 
     var authorizationServerId: UUID? = null,
 
-    @field:NotNull
+    var type: String? = null,
+
+    var status: String? = null,
+
+    var name: String? = null,
+
+    var credentialValue: String? = null,
+
     var scopes: List<ScopeResponse>? = null,
 
+    var expiresIn: Int? = null,
+
     @field:NotNull
-    var createdOn: OffsetDateTime? = null
+    var createdOn: OffsetDateTime? = null,
+
+    @field:NotNull
+    var updatedOn: OffsetDateTime? = null
 )

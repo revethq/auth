@@ -39,7 +39,6 @@ import com.revethq.auth.core.services.ScopeService
 import com.revethq.auth.core.services.SchemaService
 import com.revethq.auth.core.services.TemplateService
 import jakarta.json.bind.JsonbBuilder
-import com.revethq.auth.persistence.repositories.ApplicationSecretRepository
 import com.revethq.auth.persistence.repositories.AuthorizationServerRepository
 import com.revethq.auth.persistence.repositories.EventRepository
 import com.revethq.auth.persistence.repositories.RefreshTokenRepository
@@ -77,7 +76,6 @@ import java.util.stream.Collectors
 @ApplicationScoped
 class AuthorizationServerService(
     private val authorizationServerRepository: AuthorizationServerRepository,
-    private val applicationSecretRepository: ApplicationSecretRepository,
     private val eventRepository: EventRepository,
     private val profileRepository: ProfileRepository,
     private val refreshTokenRepository: RefreshTokenRepository,

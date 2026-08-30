@@ -17,22 +17,11 @@
  * THE SOFTWARE.
  */
 
-package com.revethq.auth.core.api.dto
+package com.revethq.auth.core.domain
 
-import jakarta.json.bind.annotation.JsonbNillable
-import jakarta.validation.constraints.NotNull
-import java.util.UUID
-
-@JsonbNillable(false)
-data class ApplicationSecretRequest(
-    @field:NotNull
-    var applicationId: UUID? = null,
-
-    @field:NotNull
-    var name: String? = null,
-
-    @field:NotNull
-    var scopes: List<UUID>? = null,
-
-    var expiresIn: Int? = null
-)
+enum class CredentialType {
+    PASSWORD,
+    API_KEY,
+    TOTP,
+    RECOVERY_CODE
+}

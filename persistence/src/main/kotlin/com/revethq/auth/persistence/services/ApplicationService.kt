@@ -22,38 +22,30 @@ package com.revethq.auth.persistence.services
 import com.revethq.auth.core.domain.Page
 import com.revethq.auth.core.domain.Pair
 import com.revethq.auth.core.domain.Application
-import com.revethq.auth.core.domain.ApplicationSecret
 import com.revethq.core.Metadata
 import com.revethq.auth.core.domain.Profile
 import com.revethq.iam.user.domain.ProfileType
 import com.revethq.core.SchemaValidation
 import com.revethq.auth.core.services.SchemaService
-import com.revethq.auth.core.exceptions.badrequests.ApplicationSecretNoApplicationBadData
 import com.revethq.auth.core.exceptions.notfound.ApplicationNotFound
-import com.revethq.auth.core.exceptions.notfound.ApplicationSecretNotFound
 import com.revethq.auth.core.exceptions.notfound.ProfileNotFound
 import com.revethq.auth.core.services.ScopeService
 import com.revethq.auth.persistence.repositories.*
 import com.revethq.auth.persistence.entities.EventType
 import com.revethq.auth.persistence.entities.ScopeReference
 import com.revethq.auth.persistence.entities.mappers.ApplicationMapper
-import com.revethq.auth.persistence.entities.mappers.ApplicationSecretMapper
 import com.revethq.auth.persistence.entities.mappers.ProfileMapper
 import io.quarkus.hibernate.orm.panache.PanacheQuery
 import io.quarkus.panache.common.Sort
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.Transactional
 import org.jboss.logging.Logger
-import java.math.BigInteger
-import java.security.MessageDigest
-import java.security.SecureRandom
 import java.time.OffsetDateTime
 import java.util.UUID
 
 @ApplicationScoped
 class ApplicationService(
     private val applicationRepository: ApplicationRepository,
-    private val applicationSecretRepository: ApplicationSecretRepository,
     private val eventRepository: EventRepository,
     private val profileRepository: ProfileRepository,
     private val scopeReferenceRepository: ScopeReferenceRepository,
@@ -140,62 +132,6 @@ class ApplicationService(
     }
 
     @Transactional
-    @Throws(ApplicationNotFound::class)
-    override fun getApplicationSecrets(applicationId: List<UUID>): List<ApplicationSecret> {
-        if (applicationId.isEmpty()) {
-            val secrets: List<com.revethq.auth.persistence.entities.ApplicationSecret> = applicationSecretRepository.findAll().list()
-            return secrets.map { ApplicationSecretMapper.from(it) }
-        }
-
-        return applicationSecretRepository.findByApplicationIdIn(applicationId)
-            .map { ApplicationSecretMapper.from(it) }
-    }
-
-    @Transactional
-    @Throws(ApplicationNotFound::class)
-    override fun createApplicationSecret(applicationSecret: ApplicationSecret): ApplicationSecret {
-        val application = applicationRepository
-            .findByIdOptional(applicationSecret.applicationId)
-            .orElseThrow { ApplicationNotFound() }
-
-        val messageDigest = MessageDigest.getInstance("SHA-256")
-        val secret = BigInteger(1, SecureRandom().generateSeed(120)).toString(16)
-        val secretHash = BigInteger(1, messageDigest.digest(secret.toByteArray())).toString(16)
-        applicationSecret.applicationSecret = secret
-        applicationSecret.applicationSecretHash = secretHash
-        applicationSecret.authorizationServerId = application.authorizationServerId
-        applicationSecret.createdOn = OffsetDateTime.now()
-        val _applicationSecret = ApplicationSecretMapper.to(applicationSecret)
-        applicationSecretRepository.persist(_applicationSecret)
-        val applicationSecretReferences = applicationSecret.scopes.orEmpty()
-            .map { scope ->
-                val scopeReference = ScopeReference()
-                scopeReference.scopeId = scope.id
-                scopeReference.resourceId = _applicationSecret.id
-                scopeReference.scopeReferenceType = ScopeReference.ScopeReferenceType.APPLICATION_SECRET
-                scopeReference
-            }
-        scopeReferenceRepository.persist(applicationSecretReferences)
-
-        // Flush to ensure references are persisted before refreshing
-        applicationSecretRepository.flush()
-
-        // Refresh the secret to get the new scopes and add the actual secret string back on.
-        val refreshedSecret = applicationSecretRepository.findById(_applicationSecret.id)
-        refreshedSecret.applicationSecret = secret
-        return ApplicationSecretMapper.from(refreshedSecret)
-    }
-
-    @Transactional
-    @Throws(ApplicationSecretNoApplicationBadData::class, ApplicationSecretNotFound::class)
-    override fun deleteApplicationSecret(secretId: UUID) {
-        val secret = applicationSecretRepository
-            .findByIdOptional(secretId)
-            .orElseThrow { ApplicationSecretNotFound() }
-        applicationSecretRepository.delete(secret)
-    }
-
-    @Transactional
     @Suppress("UNCHECKED_CAST")
     override fun getApplications(authorizationServerIds: List<UUID>, page: Page): List<Application> {
         val entities: List<com.revethq.auth.persistence.entities.Application>
@@ -209,38 +145,6 @@ class ApplicationService(
             entities = paged.list()
         }
         return entities.map { ApplicationMapper.from(it) }
-    }
-
-    @Transactional
-    override fun isApplicationSecretValid(authorizationServerId: UUID, applicationSecretId: UUID, applicationSecret: String): Boolean {
-        try {
-            // Find the application secret by ID first
-            val applicationSecretOpt = applicationSecretRepository.findByIdOptional(applicationSecretId)
-            if (applicationSecretOpt.isEmpty) {
-                return false
-            }
-
-            // Verify it belongs to the correct authorization server
-            if (authorizationServerId != applicationSecretOpt.get().authorizationServerId) {
-                return false
-            }
-
-            // Hash the provided secret and compare
-            val messageDigest = MessageDigest.getInstance("SHA-256")
-            val secretHash = BigInteger(1, messageDigest.digest(applicationSecret.toByteArray())).toString(16)
-
-            return secretHash == applicationSecretOpt.get().applicationSecretHash
-        } catch (e: Exception) {
-            throw RuntimeException(e)
-        }
-    }
-
-    @Transactional
-    override fun getApplicationSecret(applicationSecretId: String): ApplicationSecret {
-        return applicationSecretRepository
-            .findByIdOptional(UUID.fromString(applicationSecretId))
-            .map { ApplicationSecretMapper.from(it) }
-            .orElseThrow { RuntimeException("ApplicationSecret not found") }
     }
 
     private fun validateProfileAndUpdateApplicationMetadata(application: Application, profile: Profile) {

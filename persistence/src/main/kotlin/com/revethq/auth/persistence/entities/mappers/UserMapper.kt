@@ -32,8 +32,7 @@ object UserMapper {
             authorizationServerId = user.authorizationServerId,
             metadata = user.metadata,
             email = user.email,
-            username = user.username,
-            password = user.passwordHash
+            username = user.username
         )
     }
 
@@ -47,7 +46,6 @@ object UserMapper {
             authorizationServerId = user.authorizationServerId
             email = user.email
             username = user.username
-            passwordHash = user.password
         }
     }
 }

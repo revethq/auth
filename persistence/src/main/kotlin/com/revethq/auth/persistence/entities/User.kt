@@ -38,8 +38,6 @@ open class User {
 
     open var authorizationServerId: UUID? = null
 
-    open var passwordHash: String? = null
-
     open var username: String? = null
 
     open var email: String? = null

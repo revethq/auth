@@ -17,15 +17,21 @@
  * THE SOFTWARE.
  */
 
-package com.revethq.auth.core.api.dto
+package com.revethq.auth.core.services
 
-import jakarta.json.bind.annotation.JsonbNillable
-import jakarta.validation.constraints.NotNull
+import com.revethq.auth.core.domain.Credential
+import com.revethq.auth.core.domain.CredentialType
+import java.util.UUID
 
-@JsonbNillable(false)
-data class ApplicationSecretsResponse(
-    var applicationSecrets: List<ApplicationSecretResponse>? = null,
+interface CredentialService {
 
-    @field:NotNull
-    var page: Page? = null
-)
+    fun createCredential(credential: Credential): Credential
+
+    fun getCredential(credentialId: UUID): Credential
+
+    fun listCredentials(userId: UUID?, applicationId: UUID?, type: CredentialType?): List<Credential>
+
+    fun deleteCredential(credentialId: UUID)
+
+    fun validate(credentialId: UUID, value: String): Boolean
+}

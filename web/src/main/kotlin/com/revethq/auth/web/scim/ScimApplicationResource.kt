@@ -49,7 +49,7 @@ open class ScimApplicationResource @Inject constructor(
 
         return Response
             .ok()
-            .entity(ScimApplicationMapper.toResponse(result.scimApplication, result.applicationSecret))
+            .entity(ScimApplicationMapper.toResponse(result.scimApplication, result.credential))
             .build()
     }
 

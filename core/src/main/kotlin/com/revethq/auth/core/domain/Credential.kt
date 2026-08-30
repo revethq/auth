@@ -19,19 +19,21 @@
 
 package com.revethq.auth.core.domain
 
-import com.revethq.core.Metadata
 import java.time.OffsetDateTime
 import java.util.*
 
-data class ApplicationSecret(
+data class Credential(
     var id: UUID? = null,
+    var userId: UUID? = null,
     var applicationId: UUID? = null,
     var authorizationServerId: UUID? = null,
+    var type: CredentialType? = null,
+    var status: CredentialStatus? = null,
     var name: String? = null,
-    var applicationSecret: String? = null,
-    var applicationSecretHash: String? = null,
-    var metadata: Metadata? = null,
+    var credentialValue: String? = null,
+    var credentialHash: String? = null,
+    var expiresIn: Int? = null,
+    var scopes: List<Scope>? = null,
     var createdOn: OffsetDateTime? = null,
-    var expiresIn: Int? = 0,
-    var scopes: List<Scope>? = null
+    var updatedOn: OffsetDateTime? = null
 )

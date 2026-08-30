@@ -89,8 +89,8 @@ class ScimApplicationServiceTest {
         val result = scimApplicationService.createScimApplication(scimApp, autoCreateApplication = true)
 
         assertNotNull(result.scimApplication.applicationId)
-        assertNotNull(result.applicationSecret)
-        assertNotNull(result.applicationSecret?.applicationSecret)
+        assertNotNull(result.credential)
+        assertNotNull(result.credential?.credentialValue)
     }
 
     @Test
@@ -185,9 +185,9 @@ class ScimApplicationServiceTest {
         val result2 = scimApplicationService.createScimApplication(scimApp2, autoCreateApplication = true)
 
         // Different applications should have different secrets
-        assertNotNull(result1.applicationSecret?.id)
-        assertNotNull(result2.applicationSecret?.id)
-        assertTrue(result1.applicationSecret?.id != result2.applicationSecret?.id)
+        assertNotNull(result1.credential?.id)
+        assertNotNull(result2.credential?.id)
+        assertTrue(result1.credential?.id != result2.credential?.id)
     }
 
     @Test
@@ -244,7 +244,7 @@ class ScimApplicationServiceTest {
 
         assertEquals(applicationId, result.scimApplication.applicationId)
         // No new credentials should be returned
-        assertEquals(null, result.applicationSecret)
+        assertEquals(null, result.credential)
     }
 
     @Test

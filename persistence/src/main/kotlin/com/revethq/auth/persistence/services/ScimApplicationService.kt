@@ -20,7 +20,8 @@
 package com.revethq.auth.persistence.services
 
 import com.revethq.auth.core.domain.Application
-import com.revethq.auth.core.domain.ApplicationSecret
+import com.revethq.auth.core.domain.Credential
+import com.revethq.auth.core.domain.CredentialType
 import com.revethq.auth.core.domain.Page
 import com.revethq.auth.core.domain.Profile
 import com.revethq.auth.core.domain.ScimApplication
@@ -30,6 +31,7 @@ import com.revethq.auth.core.exceptions.notfound.ScimApplicationNotFound
 import com.revethq.auth.core.scim.ScimOperation
 import com.revethq.auth.core.scim.ScimScopes
 import com.revethq.auth.core.services.ApplicationService
+import com.revethq.auth.core.services.CredentialService
 import com.revethq.auth.core.services.ScimApplicationCreateResult
 import com.revethq.auth.core.services.ScimScopeService
 import com.revethq.auth.persistence.entities.mappers.ScimApplicationMapper
@@ -51,6 +53,7 @@ class ScimApplicationService(
     private val scimResourceMappingRepository: ScimResourceMappingRepository,
     private val applicationRepository: ApplicationRepository,
     private val applicationService: ApplicationService,
+    private val credentialService: CredentialService,
     private val scimScopeService: ScimScopeService
 ) : com.revethq.auth.core.services.ScimApplicationService {
 
@@ -99,7 +102,7 @@ class ScimApplicationService(
         // Set default operations if not specified
         val enabledOperations = scimApplication.enabledOperations ?: ALL_OPERATIONS
 
-        var applicationSecret: ApplicationSecret? = null
+        var credential: Credential? = null
 
         // Handle Application association
         val applicationId = if (scimApplication.applicationId != null) {
@@ -113,7 +116,7 @@ class ScimApplicationService(
                 scimAppName = scimApplication.name ?: "SCIM Application",
                 operations = enabledOperations
             )
-            applicationSecret = secret
+            credential = secret
             appId
         } else {
             throw IllegalArgumentException("Application ID is required when autoCreateApplication is false")
@@ -134,7 +137,7 @@ class ScimApplicationService(
 
         return ScimApplicationCreateResult(
             scimApplication = ScimApplicationMapper.from(entity),
-            applicationSecret = applicationSecret
+            credential = credential
         )
     }
 
@@ -205,7 +208,7 @@ class ScimApplicationService(
         authorizationServerId: UUID,
         scimAppName: String,
         operations: Set<ScimOperation>
-    ): Pair<UUID, ApplicationSecret> {
+    ): Pair<UUID, Credential> {
         // Get the required scopes
         val requiredScopes = scimScopeService.getScopesForOperations(authorizationServerId, operations)
 
@@ -223,17 +226,19 @@ class ScimApplicationService(
         val result = applicationService.createApplication(application, profile)
         val createdApp = result.left ?: throw RuntimeException("Failed to create application")
 
-        // Create an ApplicationSecret
-        val secret = ApplicationSecret(
+        // Create a Credential for the application
+        val credential = Credential(
             applicationId = createdApp.id,
+            authorizationServerId = authorizationServerId,
+            type = CredentialType.API_KEY,
             name = "SCIM Client Secret",
             scopes = requiredScopes
         )
 
-        val createdSecret = applicationService.createApplicationSecret(secret)
+        val createdCredential = credentialService.createCredential(credential)
 
         LOG.info("Auto-created Application ${createdApp.id} with SCIM scopes for SCIM application")
 
-        return Pair(createdApp.id!!, createdSecret)
+        return Pair(createdApp.id!!, createdCredential)
     }
 }

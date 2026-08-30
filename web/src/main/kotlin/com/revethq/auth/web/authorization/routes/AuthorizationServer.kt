@@ -25,9 +25,9 @@ import com.revethq.auth.core.authorization.interfaces.AuthorizationServerApi
 import com.revethq.auth.web.authorization.routes.mappers.AccessTokenResponseMapper
 import com.revethq.auth.web.authorization.routes.mappers.JwksMapper
 import com.revethq.auth.core.domain.ClientCode
-import com.revethq.auth.core.services.ApplicationService
 import com.revethq.auth.core.services.AuthorizationServerService
 import com.revethq.auth.core.services.ClientService
+import com.revethq.auth.core.services.CredentialService
 import com.revethq.auth.core.services.ScopeService
 import com.revethq.auth.core.services.TemplateService
 import com.revethq.auth.core.services.UserService
@@ -52,7 +52,7 @@ abstract class AuthorizationServer : AuthorizationServerApi {
     protected lateinit var clientService: ClientService
     protected lateinit var userService: UserService
     protected lateinit var templateService: TemplateService
-    protected lateinit var applicationService: ApplicationService
+    protected lateinit var credentialService: CredentialService
     protected lateinit var scopeService: ScopeService
 
     @Suppress("unused")
@@ -63,14 +63,14 @@ abstract class AuthorizationServer : AuthorizationServerApi {
         clientService: ClientService,
         userService: UserService,
         templateService: TemplateService,
-        applicationService: ApplicationService,
+        credentialService: CredentialService,
         scopeService: ScopeService
     ) {
         this.authorizationServerService = authorizationServerService
         this.clientService = clientService
         this.userService = userService
         this.templateService = templateService
-        this.applicationService = applicationService
+        this.credentialService = credentialService
         this.scopeService = scopeService
     }
 
@@ -120,7 +120,10 @@ abstract class AuthorizationServer : AuthorizationServerApi {
             return renderLoginScreen(authorizationServerId, "Invalid username or password")
         }
 
-        if (!userService.validatePassword(userId, password)) {
+        // Validate password via CredentialService
+        val userCredentials = credentialService.listCredentials(userId, null, com.revethq.auth.core.domain.CredentialType.PASSWORD)
+        val activeCredential = userCredentials.firstOrNull { it.status == com.revethq.auth.core.domain.CredentialStatus.ACTIVE }
+        if (activeCredential == null || !credentialService.validate(activeCredential.id!!, password)) {
             LOG.error("Password was not correct")
             return renderLoginScreen(authorizationServerId, "Invalid username or password")
         }
@@ -415,22 +418,27 @@ abstract class AuthorizationServer : AuthorizationServerApi {
 
         return when (requestGrantType) {
             AccessTokenRequest.GrantTypeEnum.CLIENT_CREDENTIALS -> {
-                if (!applicationService.isApplicationSecretValid(
-                        authorizationServerId,
-                        UUID.fromString(requestClientId),
-                        accessTokenRequest.clientSecret ?: ""
-                    )
-                ) {
+                val credentialId = try {
+                    UUID.fromString(requestClientId)
+                } catch (e: Exception) {
+                    throw BadRequestException("Invalid client_id format")
+                }
+
+                if (!credentialService.validate(credentialId, accessTokenRequest.clientSecret ?: "")) {
                     throw BadRequestException()
                 }
 
-                val applicationSecret = applicationService.getApplicationSecret(requestClientId)
+                val credential = credentialService.getCredential(credentialId)
+                if (credential.authorizationServerId != authorizationServerId) {
+                    throw BadRequestException("Credential does not belong to this authorization server")
+                }
+
                 val scopes = scopeService.filterScopesForAuthorizationServerId(
                     authorizationServerId,
                     accessTokenRequest.scope ?: ""
-                ).filter { requestedScope -> applicationSecret.scopes?.contains(requestedScope) == true }
+                ).filter { requestedScope -> credential.scopes?.contains(requestedScope) == true }
 
-                val appId = applicationSecret.applicationId ?: throw BadRequestException("Application ID is null")
+                val ownerId = credential.applicationId ?: credential.userId ?: throw BadRequestException("Credential has no owner")
                 val tokenExpiration = authorizationServer.clientCredentialsTokenExpiration ?: 3600L
 
                 Response
@@ -439,8 +447,8 @@ abstract class AuthorizationServer : AuthorizationServerApi {
                         AccessTokenResponseMapper.toAccessTokenResponse(
                             authorizationServerService.generateClientCredentialsAccessToken(
                                 authorizationServerId,
-                                appId,
-                                appId.toString(),
+                                ownerId,
+                                ownerId.toString(),
                                 scopes,
                                 tokenExpiration
                             )

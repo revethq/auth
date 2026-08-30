@@ -22,9 +22,9 @@ package com.revethq.auth.web.authorization.routes
 import com.revethq.auth.core.domain.Page
 import com.revethq.auth.core.domain.TemplateTypeEnum
 import com.revethq.auth.core.exceptions.notfound.TemplateNotFound
-import com.revethq.auth.core.services.ApplicationService
 import com.revethq.auth.core.services.AuthorizationServerService
 import com.revethq.auth.core.services.ClientService
+import com.revethq.auth.core.services.CredentialService
 import com.revethq.auth.core.services.ScopeService
 import com.revethq.auth.core.services.TemplateService
 import com.revethq.auth.core.services.UserService
@@ -49,14 +49,14 @@ open class AuthorizationServerRoutes : AuthorizationServer {
         clientService: ClientService,
         userService: UserService,
         templateServiceInstance: TemplateService,
-        applicationService: ApplicationService,
+        credentialService: CredentialService,
         scopeService: ScopeService
     ) : super(
         authorizationServerService,
         clientService,
         userService,
         templateServiceInstance,
-        applicationService,
+        credentialService,
         scopeService
     ) {
         this.templateServiceInstance = templateServiceInstance

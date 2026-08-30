@@ -17,35 +17,34 @@
  * THE SOFTWARE.
  */
 
-package com.revethq.auth.web.config
+package com.revethq.auth.persistence.repositories
 
 import com.revethq.auth.core.domain.CredentialStatus
 import com.revethq.auth.core.domain.CredentialType
-import com.revethq.auth.persistence.config.KotlinJsonFormatMapper
-import com.revethq.core.Identifier
-import com.revethq.core.Metadata
-import com.revethq.core.SchemaValidation
-import com.revethq.iam.user.domain.MemberType
-import com.revethq.iam.user.domain.ProfileType
-import io.quarkus.runtime.annotations.RegisterForReflection
+import com.revethq.auth.persistence.entities.Credential
+import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase
+import jakarta.enterprise.context.ApplicationScoped
+import java.util.UUID
 
-/**
- * Registers classes from external dependencies for GraalVM native image reflection.
- * These classes are used for JSON serialization/deserialization and need to be
- * accessible via reflection at runtime.
- */
-@RegisterForReflection(targets = [
-    // Hibernate JSON FormatMapper (loaded via Class.forName)
-    KotlinJsonFormatMapper::class,
-    // com.revethq.core
-    Metadata::class,
-    Identifier::class,
-    SchemaValidation::class,
-    // com.revethq.iam.user.domain
-    MemberType::class,
-    ProfileType::class,
-    // com.revethq.auth.core.domain
-    CredentialType::class,
-    CredentialStatus::class
-])
-class ReflectionConfiguration
+@ApplicationScoped
+class CredentialRepository : PanacheRepositoryBase<Credential, UUID> {
+    fun findByUserId(userId: UUID): List<Credential> {
+        return list("userId", userId)
+    }
+
+    fun findByApplicationId(applicationId: UUID): List<Credential> {
+        return list("applicationId", applicationId)
+    }
+
+    fun findByUserIdAndType(userId: UUID, type: CredentialType): List<Credential> {
+        return list("userId = ?1 and type = ?2", userId, type)
+    }
+
+    fun findByApplicationIdAndType(applicationId: UUID, type: CredentialType): List<Credential> {
+        return list("applicationId = ?1 and type = ?2", applicationId, type)
+    }
+
+    fun findActiveByUserIdAndType(userId: UUID, type: CredentialType): List<Credential> {
+        return list("userId = ?1 and type = ?2 and status = ?3", userId, type, CredentialStatus.ACTIVE)
+    }
+}

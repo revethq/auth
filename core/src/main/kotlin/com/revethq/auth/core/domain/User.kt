@@ -26,7 +26,6 @@ import java.util.*
 data class User(
     var id: UUID? = null,
     var authorizationServerId: UUID? = null,
-    var password: String? = null,
     var username: String? = null,
     var email: String? = null,
     var metadata: Metadata? = null,

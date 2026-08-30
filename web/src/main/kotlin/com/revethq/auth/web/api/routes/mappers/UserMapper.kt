@@ -36,7 +36,6 @@ object UserMapper {
         user.metadata = MetadataMapper.from(userRequest.metadata)
         user.username = userRequest.username
         user.email = userRequest.email
-        user.password = userRequest.password
 
         val profile = Profile()
         profile.profileType = ProfileType.User

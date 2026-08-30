@@ -19,7 +19,7 @@
 
 package com.revethq.auth.core.services
 
-import com.revethq.auth.core.domain.ApplicationSecret
+import com.revethq.auth.core.domain.Credential
 import com.revethq.auth.core.domain.Page
 import com.revethq.auth.core.domain.ScimApplication
 import java.util.UUID
@@ -30,10 +30,10 @@ import java.util.UUID
 data class ScimApplicationCreateResult(
     val scimApplication: ScimApplication,
     /**
-     * If an Application was auto-created, the application secret is returned.
-     * This is the only time the raw secret value is available.
+     * If an Application was auto-created, the credential is returned.
+     * This is the only time the raw credential value is available.
      */
-    val applicationSecret: ApplicationSecret? = null
+    val credential: Credential? = null
 )
 
 /**

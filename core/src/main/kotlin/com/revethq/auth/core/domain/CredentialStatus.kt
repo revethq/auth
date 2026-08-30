@@ -17,6 +17,9 @@
  * THE SOFTWARE.
  */
 
-package com.revethq.auth.core.exceptions.badrequests
+package com.revethq.auth.core.domain
 
-class ApplicationSecretNoApplicationBadData : RuntimeException("Unable to find the Application with the credentials provided")
+enum class CredentialStatus {
+    ACTIVE,
+    REVOKED
+}

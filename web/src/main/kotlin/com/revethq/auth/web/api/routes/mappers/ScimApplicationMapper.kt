@@ -24,7 +24,7 @@ import com.revethq.auth.core.api.dto.ScimApplicationCredentials
 import com.revethq.auth.core.api.dto.ScimApplicationRequest
 import com.revethq.auth.core.api.dto.ScimApplicationResponse
 import com.revethq.auth.core.api.dto.ScimDeliveryStatusResponse
-import com.revethq.auth.core.domain.ApplicationSecret
+import com.revethq.auth.core.domain.Credential
 import com.revethq.auth.core.domain.ScimApplication
 import com.revethq.auth.core.domain.ScimDeliveryStatus
 import com.revethq.auth.core.scim.RetryPolicy
@@ -52,7 +52,7 @@ object ScimApplicationMapper {
     }
 
     @JvmStatic
-    fun toResponse(scimApplication: ScimApplication, credentials: ApplicationSecret? = null): ScimApplicationResponse {
+    fun toResponse(scimApplication: ScimApplication, credential: Credential? = null): ScimApplicationResponse {
         return ScimApplicationResponse(
             id = scimApplication.id,
             authorizationServerId = scimApplication.authorizationServerId,
@@ -66,10 +66,10 @@ object ScimApplicationMapper {
             enabled = scimApplication.enabled,
             createdOn = scimApplication.createdOn,
             updatedOn = scimApplication.updatedOn,
-            credentials = credentials?.let {
+            credentials = credential?.let {
                 ScimApplicationCredentials(
                     applicationSecretId = it.id,
-                    applicationSecret = it.applicationSecret
+                    applicationSecret = it.credentialValue
                 )
             }
         )

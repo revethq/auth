@@ -21,12 +21,9 @@ package com.revethq.auth.core.services
 
 import com.revethq.auth.core.domain.Page
 import com.revethq.auth.core.domain.Pair
-import com.revethq.auth.core.exceptions.badrequests.ApplicationSecretNoApplicationBadData
 import com.revethq.auth.core.exceptions.notfound.ApplicationNotFound
-import com.revethq.auth.core.exceptions.notfound.ApplicationSecretNotFound
 import com.revethq.auth.core.exceptions.notfound.ProfileNotFound
 import com.revethq.auth.core.domain.Application
-import com.revethq.auth.core.domain.ApplicationSecret
 import com.revethq.auth.core.domain.Profile
 import java.util.*
 
@@ -40,18 +37,5 @@ interface ApplicationService {
 
     fun createApplication(application: Application, profile: Profile): Pair<Application, Profile>
 
-    @Throws(ApplicationNotFound::class)
-    fun getApplicationSecrets(applicationId: List<UUID>): List<ApplicationSecret>
-
-    @Throws(ApplicationNotFound::class)
-    fun createApplicationSecret(applicationSecret: ApplicationSecret): ApplicationSecret
-
-    @Throws(ApplicationSecretNoApplicationBadData::class, ApplicationSecretNotFound::class)
-    fun deleteApplicationSecret(secretId: UUID)
-
     fun getApplications(authorizationServerIds: List<UUID>, page: Page): List<Application>
-
-    fun isApplicationSecretValid(authorizationServerId: UUID, applicationSecretId: UUID, applicationSecret: String): Boolean
-    
-    fun getApplicationSecret(applicationSecretId: String): ApplicationSecret
 }

@@ -17,21 +17,30 @@
  * THE SOFTWARE.
  */
 
-package com.revethq.auth.persistence.repositories
+package com.revethq.auth.core.api.dto
 
-import com.revethq.auth.persistence.entities.ApplicationSecret
-import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase
-import jakarta.enterprise.context.ApplicationScoped
-import java.util.Optional
+import jakarta.json.bind.annotation.JsonbNillable
+import jakarta.validation.constraints.NotNull
 import java.util.UUID
 
-@ApplicationScoped
-class ApplicationSecretRepository : PanacheRepositoryBase<ApplicationSecret, UUID> {
-    fun findByApplicationIdIn(applicationId: List<UUID>): List<ApplicationSecret> {
-        return list("applicationId in ?1", applicationId)
-    }
+@JsonbNillable(false)
+data class CredentialRequest(
+    var userId: UUID? = null,
 
-    fun findByApplicationSecretHash(secretHash: String): Optional<ApplicationSecret> {
-        return find("applicationSecretHash = ?1", secretHash).singleResultOptional()
-    }
-}
+    var applicationId: UUID? = null,
+
+    @field:NotNull
+    var authorizationServerId: UUID? = null,
+
+    @field:NotNull
+    var type: String? = null,
+
+    @field:NotNull
+    var value: String? = null,
+
+    var name: String? = null,
+
+    var scopes: List<UUID>? = null,
+
+    var expiresIn: Int? = null
+)

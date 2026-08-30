@@ -32,7 +32,5 @@ data class UserRequest(
 
     var profile: Any? = null,
 
-    var password: String? = null,
-
     var metadata: Metadata? = null
 )

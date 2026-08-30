@@ -19,9 +19,13 @@
 
 package com.revethq.auth.persistence.entities
 
+import com.revethq.auth.core.domain.CredentialStatus
+import com.revethq.auth.core.domain.CredentialType
 import jakarta.persistence.CascadeType
 import jakarta.persistence.ConstraintMode
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.ForeignKey
 import jakarta.persistence.GeneratedValue
@@ -35,24 +39,30 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 @Entity
-@Table(name = "revet_application_secrets")
-open class ApplicationSecret {
+@Table(name = "revet_credentials")
+open class Credential {
     @Id
     @GeneratedValue
     open var id: UUID? = null
+
+    open var userId: UUID? = null
 
     open var applicationId: UUID? = null
 
     open var authorizationServerId: UUID? = null
 
+    @Enumerated(EnumType.STRING)
+    open var type: CredentialType? = null
+
+    @Enumerated(EnumType.STRING)
+    open var status: CredentialStatus? = null
+
     open var name: String? = null
 
     @Transient
-    open var applicationSecret: String? = null
+    open var credentialValue: String? = null
 
-    open var applicationSecretHash: String? = null
-
-    open var createdOn: OffsetDateTime? = null
+    open var credentialHash: String? = null
 
     open var expiresIn: Int? = null
 
@@ -66,4 +76,8 @@ open class ApplicationSecret {
     )
     @OneToMany(targetEntity = Scope::class, cascade = [CascadeType.DETACH], orphanRemoval = true, fetch = FetchType.EAGER)
     open var scopes: List<Scope> = emptyList()
+
+    open var createdOn: OffsetDateTime? = null
+
+    open var updatedOn: OffsetDateTime? = null
 }

@@ -92,7 +92,4 @@ interface UserService {
     @Throws(UserNotFound::class, ProfileNotFound::class)
     fun updateUser(userId: UUID, userProfilePair: Pair<User, Profile>): Pair<User, Profile>
 
-    fun setPassword(user: User, password: String)
-
-    fun validatePassword(userId: UUID, password: String): Boolean
 }

@@ -20,13 +20,10 @@
 package com.revethq.auth.web.api.routes.mappers
 
 import com.revethq.auth.core.domain.Application
-import com.revethq.auth.core.domain.ApplicationSecret
 import com.revethq.auth.core.domain.Profile
 import com.revethq.auth.core.domain.Scope
 import com.revethq.auth.core.api.dto.ApplicationRequest
 import com.revethq.auth.core.api.dto.ApplicationResponse
-import com.revethq.auth.core.api.dto.ApplicationSecretRequest
-import com.revethq.auth.core.api.dto.ApplicationSecretResponse
 
 object ApplicationMapper {
 
@@ -74,28 +71,4 @@ object ApplicationMapper {
         }
     }
 
-    @JvmStatic
-    fun secretFrom(application: Application, applicationSecretRequest: ApplicationSecretRequest): ApplicationSecret {
-        return ApplicationSecret().apply {
-            applicationId = application.id
-            name = applicationSecretRequest.name
-            authorizationServerId = application.authorizationServerId
-            scopes = applicationSecretRequest.scopes?.map { Scope(it) } ?: emptyList()
-            expiresIn = applicationSecretRequest.expiresIn
-        }
-    }
-
-    @JvmStatic
-    fun toSecretResponse(applicationSecret: ApplicationSecret): ApplicationSecretResponse {
-        return ApplicationSecretResponse().apply {
-            clientSecret = applicationSecret.applicationSecret
-            id = applicationSecret.id
-            name = applicationSecret.name
-            applicationId = applicationSecret.applicationId
-            authorizationServerId = applicationSecret.authorizationServerId
-            scopes = applicationSecret.scopes?.map { ScopeMapper.toResponse(it) } ?: emptyList()
-            createdOn = applicationSecret.createdOn
-            expiresIn = applicationSecret.expiresIn
-        }
-    }
 }

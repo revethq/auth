@@ -38,7 +38,6 @@ import io.quarkus.panache.common.Sort
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.Transactional
 import org.jboss.logging.Logger
-import io.quarkus.elytron.security.common.BcryptUtil
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -113,9 +112,6 @@ class UserService(
 
         val _user = UserMapper.to(user)
         userRepository.persist(_user)
-        if (user.password != null) {
-            setPassword(UserMapper.from(_user), user.password!!)
-        }
 
         profile.createdOn = OffsetDateTime.now()
         profile.updatedOn = OffsetDateTime.now()
@@ -200,26 +196,6 @@ class UserService(
         val pair = Pair.create(UserMapper.from(_user), ProfileMapper.from(_profile))
         eventRepository.createUserProfileEvent(pair, EventType.UPDATE)
         return pair
-    }
-
-    @Transactional
-    override fun setPassword(user: User, password: String) {
-        // TODO: This config should be pulled from the Authorization Server
-        val passwordHash = BcryptUtil.bcryptHash(password)
-        val _user = userRepository
-            .findByIdOptional(user.id)
-            .orElseThrow { UserNotFound() }
-        _user.passwordHash = passwordHash
-        _user.updatedOn = OffsetDateTime.now()
-        userRepository.persist(_user)
-    }
-
-    @Transactional
-    override fun validatePassword(userId: UUID, password: String): Boolean {
-        val user = userRepository
-            .findByIdOptional(userId)
-            .orElseThrow { UserNotFound() }
-        return BcryptUtil.matches(password, user.passwordHash)
     }
 
     private fun validateProfileAndUpdateUserMetadata(user: User, profile: Profile) {
