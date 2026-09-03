@@ -30,7 +30,7 @@ import java.util.UUID
 data class ScimApplicationCreateResult(
     val scimApplication: ScimApplication,
     /**
-     * If an Application was auto-created, the credential is returned.
+     * If a ServiceAccount was auto-created, the credential is returned.
      * This is the only time the raw credential value is available.
      */
     val credential: Credential? = null
@@ -59,17 +59,17 @@ interface ScimApplicationService {
     /**
      * Create a new SCIM application.
      *
-     * If applicationId is null in the request, an Application will be auto-created
+     * If serviceAccountId is null in the request, a ServiceAccount will be auto-created
      * with the necessary SCIM scopes, and the credentials will be returned in the result.
      *
-     * If applicationId is provided, the existing Application will be validated
+     * If serviceAccountId is provided, the existing ServiceAccount will be validated
      * to ensure it has the required scopes for the enabled operations.
      *
      * @param scimApplication The SCIM application configuration
-     * @param autoCreateApplication Whether to auto-create an Application if applicationId is null
+     * @param autoCreateServiceAccount Whether to auto-create a ServiceAccount if serviceAccountId is null
      * @return The created SCIM application with optional credentials
      */
-    fun createScimApplication(scimApplication: ScimApplication, autoCreateApplication: Boolean = true): ScimApplicationCreateResult
+    fun createScimApplication(scimApplication: ScimApplication, autoCreateServiceAccount: Boolean = true): ScimApplicationCreateResult
 
     /**
      * Update an existing SCIM application.
@@ -78,7 +78,7 @@ interface ScimApplicationService {
 
     /**
      * Delete a SCIM application by ID.
-     * Note: This does not delete the associated Application entity.
+     * Note: This does not delete the associated ServiceAccount entity.
      */
     fun deleteScimApplication(scimApplicationId: UUID)
 

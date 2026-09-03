@@ -25,9 +25,8 @@ import java.util.UUID
 
 @JsonbNillable(false)
 data class CredentialRequest(
-    var userId: UUID? = null,
-
-    var applicationId: UUID? = null,
+    @field:NotNull
+    var principalId: UUID? = null,
 
     @field:NotNull
     var authorizationServerId: UUID? = null,

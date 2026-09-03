@@ -17,6 +17,9 @@ dependencies {
 
     implementation project(path: ':core')
 
+    // Revet IAM service-account persistence (entity + repository)
+    implementation 'com.revethq.iam:revet-service-account-persistence:0.1.22'
+
     implementation 'jakarta.json.bind:jakarta.json.bind-api:3.0.1'
 
     // JSON Schema validation (native-image compatible, same Vert.x version as Quarkus)
@@ -31,6 +34,7 @@ dependencies {
 
     implementation 'io.quarkus:quarkus-hibernate-orm-panache-common'
     implementation 'io.quarkus:quarkus-hibernate-orm-panache'
+    implementation 'io.quarkus:quarkus-hibernate-orm-panache-kotlin'
     implementation 'io.quarkus:quarkus-jdbc-postgresql'
 
     // Jackson for Hibernate JSON column serialization

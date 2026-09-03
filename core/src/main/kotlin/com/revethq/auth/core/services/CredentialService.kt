@@ -29,7 +29,7 @@ interface CredentialService {
 
     fun getCredential(credentialId: UUID): Credential
 
-    fun listCredentials(userId: UUID?, applicationId: UUID?, type: CredentialType?): List<Credential>
+    fun listCredentials(principalId: UUID?, type: CredentialType?): List<Credential>
 
     fun deleteCredential(credentialId: UUID)
 

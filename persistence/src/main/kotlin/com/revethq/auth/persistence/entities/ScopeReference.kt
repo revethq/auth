@@ -34,7 +34,8 @@ open class ScopeReference {
         @Deprecated("Use CREDENTIAL instead. Kept for ordinal stability.")
         APPLICATION_SECRET,
         CLIENT,
-        CREDENTIAL
+        CREDENTIAL,
+        SERVICE_ACCOUNT
     }
 
     @Id

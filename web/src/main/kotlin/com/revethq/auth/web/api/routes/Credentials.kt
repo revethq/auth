@@ -54,9 +54,9 @@ open class Credentials @Inject constructor(
         return Response.noContent().build()
     }
 
-    override fun listCredentials(userId: UUID?, applicationId: UUID?, type: String?): Response {
+    override fun listCredentials(principalId: UUID?, type: String?): Response {
         val credentialType = type?.let { CredentialType.valueOf(it) }
-        val credentials = credentialService.listCredentials(userId, applicationId, credentialType)
+        val credentials = credentialService.listCredentials(principalId, credentialType)
         val response = CredentialsResponse()
         response.credentials = credentials.map { CredentialMapper.toResponse(it) }
         return Response.ok().entity(response).build()

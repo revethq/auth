@@ -88,8 +88,7 @@ interface CredentialsApi {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     fun listCredentials(
-        @QueryParam("userId") @Parameter(required = false, description = "Filter by user ID") userId: UUID?,
-        @QueryParam("applicationId") @Parameter(required = false, description = "Filter by application ID") applicationId: UUID?,
+        @QueryParam("principalId") @Parameter(required = false, description = "Filter by principal ID (user or service account)") principalId: UUID?,
         @QueryParam("type") @Parameter(required = false, description = "Filter by credential type") type: String?
     ): Response
 }

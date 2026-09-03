@@ -43,7 +43,7 @@ open class ScimApplicationResource @Inject constructor(
 
     override fun createScimApplication(scimApplicationRequest: ScimApplicationRequest): Response {
         val scimApplication = ScimApplicationMapper.from(scimApplicationRequest)
-        val autoCreate = scimApplicationRequest.autoCreateApplication ?: true
+        val autoCreate = scimApplicationRequest.autoCreateServiceAccount ?: true
 
         val result = scimApplicationService.createScimApplication(scimApplication, autoCreate)
 

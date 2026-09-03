@@ -375,9 +375,9 @@ class ScimProvisioningIntegrationTest {
             baseUrl = baseUrl
             // enabledOperations defaults to all operations when null
         )
-        val result = scimApplicationService.createScimApplication(scimApp, autoCreateApplication = true)
-        // Verify the applicationId was assigned
-        requireNotNull(result.scimApplication.applicationId) { "applicationId should be assigned after creation" }
+        val result = scimApplicationService.createScimApplication(scimApp, autoCreateServiceAccount = true)
+        // Verify the serviceAccountId was assigned
+        requireNotNull(result.scimApplication.serviceAccountId) { "serviceAccountId should be assigned after creation" }
         return result.scimApplication
     }
 
@@ -521,8 +521,8 @@ class ScimProvisioningIntegrationTest {
         val scopes = scimScopeService.getScimScopes(scimApp.authorizationServerId!!)
         val accessToken = authorizationServerService.generateClientCredentialsAccessToken(
             authorizationServerId = scimApp.authorizationServerId!!,
-            applicationId = scimApp.applicationId!!,
-            subject = scimApp.applicationId.toString(),
+            principalId = scimApp.serviceAccountId!!,
+            subject = scimApp.serviceAccountId.toString(),
             scopes = scopes,
             expiresInSeconds = 3600
         )

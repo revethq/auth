@@ -52,11 +52,11 @@ interface ScimScopeService {
     fun getScopesForOperations(authorizationServerId: UUID, operations: Set<ScimOperation>): List<Scope>
 
     /**
-     * Validate that an application has the required scopes for the given operations.
+     * Validate that a service account has the required scopes for the given operations.
      *
-     * @param applicationId The application ID to validate
+     * @param serviceAccountId The service account ID to validate
      * @param operations The operations that require scope validation
-     * @return true if the application has all required scopes
+     * @return true if the service account has all required scopes
      */
-    fun validateApplicationScopes(applicationId: UUID, operations: Set<ScimOperation>): Boolean
+    fun validateServiceAccountScopes(serviceAccountId: UUID, operations: Set<ScimOperation>): Boolean
 }

@@ -40,7 +40,7 @@ object ScimApplicationMapper {
     fun from(request: ScimApplicationRequest): ScimApplication {
         return ScimApplication(
             authorizationServerId = request.authorizationServerId,
-            applicationId = request.applicationId,
+            serviceAccountId = request.serviceAccountId,
             name = request.name,
             baseUrl = request.baseUrl,
             attributeMapping = request.attributeMapping,
@@ -56,7 +56,7 @@ object ScimApplicationMapper {
         return ScimApplicationResponse(
             id = scimApplication.id,
             authorizationServerId = scimApplication.authorizationServerId,
-            applicationId = scimApplication.applicationId,
+            serviceAccountId = scimApplication.serviceAccountId,
             name = scimApplication.name,
             baseUrl = scimApplication.baseUrl,
             attributeMapping = scimApplication.attributeMapping,
@@ -68,8 +68,8 @@ object ScimApplicationMapper {
             updatedOn = scimApplication.updatedOn,
             credentials = credential?.let {
                 ScimApplicationCredentials(
-                    applicationSecretId = it.id,
-                    applicationSecret = it.credentialValue
+                    credentialId = it.id,
+                    credentialSecret = it.credentialValue
                 )
             }
         )

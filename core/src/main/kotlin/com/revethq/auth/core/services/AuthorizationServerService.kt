@@ -53,7 +53,7 @@ interface AuthorizationServerService {
 
     fun generateClientCredentialsAccessToken(
         authorizationServerId: UUID,
-        applicationId: UUID,
+        principalId: UUID,
         subject: String,
         scopes: List<Scope>,
         expiresInSeconds: Long

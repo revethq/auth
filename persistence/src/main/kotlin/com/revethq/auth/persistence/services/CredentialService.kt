@@ -58,10 +58,10 @@ class CredentialService(
             credential.credentialHash = BigInteger(1, messageDigest.digest(plainValue!!.toByteArray())).toString(16)
         }
 
-        // For PASSWORD type, revoke any existing ACTIVE passwords for the same user
-        if (credential.type == CredentialType.PASSWORD && credential.userId != null) {
-            val existingPasswords = credentialRepository.findActiveByUserIdAndType(
-                credential.userId!!, CredentialType.PASSWORD
+        // For PASSWORD type, revoke any existing ACTIVE passwords for the same principal
+        if (credential.type == CredentialType.PASSWORD && credential.principalId != null) {
+            val existingPasswords = credentialRepository.findActiveByPrincipalIdAndType(
+                credential.principalId!!, CredentialType.PASSWORD
             )
             for (existing in existingPasswords) {
                 existing.status = CredentialStatus.REVOKED
@@ -102,16 +102,12 @@ class CredentialService(
     }
 
     @Transactional
-    override fun listCredentials(userId: UUID?, applicationId: UUID?, type: CredentialType?): List<Credential> {
+    override fun listCredentials(principalId: UUID?, type: CredentialType?): List<Credential> {
         val results: List<com.revethq.auth.persistence.entities.Credential> = when {
-            userId != null && type != null ->
-                credentialRepository.findByUserIdAndType(userId, type)
-            applicationId != null && type != null ->
-                credentialRepository.findByApplicationIdAndType(applicationId, type)
-            userId != null ->
-                credentialRepository.findByUserId(userId)
-            applicationId != null ->
-                credentialRepository.findByApplicationId(applicationId)
+            principalId != null && type != null ->
+                credentialRepository.findByPrincipalIdAndType(principalId, type)
+            principalId != null ->
+                credentialRepository.findByPrincipalId(principalId)
             else ->
                 credentialRepository.listAll()
         }

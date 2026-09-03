@@ -27,8 +27,7 @@ object CredentialMapper {
     fun from(credential: PostgresCredential): Credential {
         return Credential(
             id = credential.id,
-            userId = credential.userId,
-            applicationId = credential.applicationId,
+            principalId = credential.principalId,
             authorizationServerId = credential.authorizationServerId,
             type = credential.type,
             status = credential.status,
@@ -46,8 +45,7 @@ object CredentialMapper {
     fun to(credential: Credential): PostgresCredential {
         return PostgresCredential().apply {
             id = credential.id
-            userId = credential.userId
-            applicationId = credential.applicationId
+            principalId = credential.principalId
             authorizationServerId = credential.authorizationServerId
             type = credential.type
             status = credential.status

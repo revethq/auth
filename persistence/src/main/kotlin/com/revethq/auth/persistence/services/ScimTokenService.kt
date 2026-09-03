@@ -70,9 +70,9 @@ class ScimTokenService(
             val jwt = Jwt
                 .issuer(issuer)
                 .audience(scimApplication.baseUrl ?: "")
-                .subject(scimApplication.applicationId.toString())
+                .subject(scimApplication.serviceAccountId.toString())
                 .expiresIn(defaultTokenLifetime)
-                .claim("client_id", scimApplication.applicationId.toString())
+                .claim("client_id", scimApplication.serviceAccountId.toString())
                 .claim("scope", scopes.joinToString(" "))
 
             jwt.jws()
@@ -85,11 +85,11 @@ class ScimTokenService(
 
             val token = jwt.sign(KeyUtils.decodePrivateKey(signingKey.privateKey))
 
-            LOG.debug("Generated SCIM token for application ${scimApplication.applicationId} with scopes: $scopes")
+            LOG.debug("Generated SCIM token for application ${scimApplication.serviceAccountId} with scopes: $scopes")
 
             return token
         } catch (e: Exception) {
-            LOG.error("Failed to generate SCIM token for application ${scimApplication.applicationId}", e)
+            LOG.error("Failed to generate SCIM token for application ${scimApplication.serviceAccountId}", e)
             throw TokenGenerationException("Failed to generate SCIM token", e)
         }
     }

@@ -43,7 +43,7 @@ import java.util.UUID
     name = "revet_scim_applications",
     indexes = [
         Index(name = "idx_revet_scim_app_auth_server", columnList = "authorizationServerId"),
-        Index(name = "idx_revet_scim_app_application", columnList = "applicationId"),
+        Index(name = "idx_revet_scim_app_application", columnList = "serviceAccountId"),
         Index(name = "idx_revet_scim_app_enabled", columnList = "enabled")
     ]
 )
@@ -56,7 +56,7 @@ open class ScimApplication {
     open var authorizationServerId: UUID? = null
 
     @Column(nullable = false)
-    open var applicationId: UUID? = null
+    open var serviceAccountId: UUID? = null
 
     @Column(nullable = false)
     open var name: String? = null

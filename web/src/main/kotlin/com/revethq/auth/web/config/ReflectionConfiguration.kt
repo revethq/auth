@@ -25,6 +25,7 @@ import com.revethq.auth.persistence.config.KotlinJsonFormatMapper
 import com.revethq.core.Identifier
 import com.revethq.core.Metadata
 import com.revethq.core.SchemaValidation
+import com.revethq.iam.serviceaccount.domain.ServiceAccount
 import com.revethq.iam.user.domain.MemberType
 import com.revethq.iam.user.domain.ProfileType
 import io.quarkus.runtime.annotations.RegisterForReflection
@@ -44,6 +45,8 @@ import io.quarkus.runtime.annotations.RegisterForReflection
     // com.revethq.iam.user.domain
     MemberType::class,
     ProfileType::class,
+    // com.revethq.iam.serviceaccount
+    ServiceAccount::class,
     // com.revethq.auth.core.domain
     CredentialType::class,
     CredentialStatus::class

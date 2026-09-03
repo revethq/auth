@@ -63,7 +63,7 @@ class ScimApplicationResourceTest {
                 "authorizationServerId": "$authServerId",
                 "name": "Slack Integration",
                 "baseUrl": "https://api.slack.com/scim/v2",
-                "autoCreateApplication": true
+                "autoCreateServiceAccount": true
             }
         """.trimIndent()
 
@@ -78,10 +78,10 @@ class ScimApplicationResourceTest {
             .body("name", equalTo("Slack Integration"))
             .body("baseUrl", equalTo("https://api.slack.com/scim/v2"))
             .body("authorizationServerId", equalTo(authServerId.toString()))
-            .body("applicationId", notNullValue())
+            .body("serviceAccountId", notNullValue())
             .body("enabled", equalTo(true))
-            .body("credentials.applicationSecretId", notNullValue())
-            .body("credentials.applicationSecret", notNullValue())
+            .body("credentials.credentialId", notNullValue())
+            .body("credentials.credentialSecret", notNullValue())
     }
 
     @Test
@@ -92,7 +92,7 @@ class ScimApplicationResourceTest {
                 "name": "User-Only Sync",
                 "baseUrl": "https://api.example.com/scim/v2",
                 "enabledOperations": ["CREATE_USER", "UPDATE_USER", "DEACTIVATE_USER"],
-                "autoCreateApplication": true
+                "autoCreateServiceAccount": true
             }
         """.trimIndent()
 
@@ -119,7 +119,7 @@ class ScimApplicationResourceTest {
                     "maxBackoffMs": 600000,
                     "backoffMultiplier": 3.0
                 },
-                "autoCreateApplication": true
+                "autoCreateServiceAccount": true
             }
         """.trimIndent()
 
@@ -143,7 +143,7 @@ class ScimApplicationResourceTest {
                 "name": "Hard Delete App",
                 "baseUrl": "https://api.example.com/scim/v2",
                 "deleteAction": "DELETE",
-                "autoCreateApplication": true
+                "autoCreateServiceAccount": true
             }
         """.trimIndent()
 
@@ -272,7 +272,7 @@ class ScimApplicationResourceTest {
                     "userName": "$.login",
                     "emails[0].value": "$.emailAddress"
                 },
-                "autoCreateApplication": true
+                "autoCreateServiceAccount": true
             }
         """.trimIndent()
 
@@ -293,7 +293,7 @@ class ScimApplicationResourceTest {
                 "authorizationServerId": "$authServerId",
                 "name": "$name",
                 "baseUrl": "https://api.example.com/scim/v2",
-                "autoCreateApplication": true
+                "autoCreateServiceAccount": true
             }
         """.trimIndent()
 

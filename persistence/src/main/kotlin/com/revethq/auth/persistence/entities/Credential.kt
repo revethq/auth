@@ -45,9 +45,7 @@ open class Credential {
     @GeneratedValue
     open var id: UUID? = null
 
-    open var userId: UUID? = null
-
-    open var applicationId: UUID? = null
+    open var principalId: UUID? = null
 
     open var authorizationServerId: UUID? = null
 

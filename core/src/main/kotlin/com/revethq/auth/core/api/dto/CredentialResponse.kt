@@ -28,9 +28,7 @@ import java.util.UUID
 data class CredentialResponse(
     var id: UUID? = null,
 
-    var userId: UUID? = null,
-
-    var applicationId: UUID? = null,
+    var principalId: UUID? = null,
 
     var authorizationServerId: UUID? = null,
 

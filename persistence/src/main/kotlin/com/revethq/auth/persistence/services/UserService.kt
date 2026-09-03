@@ -233,9 +233,9 @@ class UserService(
                 // Create new metadata with updated schema validations
                 val existingMetadata = user.metadata
                 val newMetadata = Metadata(
-                    existingMetadata?.identifiers,
+                    existingMetadata?.identifiers ?: emptyList(),
                     existingValidations,
-                    existingMetadata?.properties
+                    existingMetadata?.properties ?: emptyMap()
                 )
                 user.metadata = newMetadata
             }

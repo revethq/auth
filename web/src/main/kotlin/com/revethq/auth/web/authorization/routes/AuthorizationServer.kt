@@ -121,7 +121,7 @@ abstract class AuthorizationServer : AuthorizationServerApi {
         }
 
         // Validate password via CredentialService
-        val userCredentials = credentialService.listCredentials(userId, null, com.revethq.auth.core.domain.CredentialType.PASSWORD)
+        val userCredentials = credentialService.listCredentials(userId, com.revethq.auth.core.domain.CredentialType.PASSWORD)
         val activeCredential = userCredentials.firstOrNull { it.status == com.revethq.auth.core.domain.CredentialStatus.ACTIVE }
         if (activeCredential == null || !credentialService.validate(activeCredential.id!!, password)) {
             LOG.error("Password was not correct")
@@ -438,7 +438,7 @@ abstract class AuthorizationServer : AuthorizationServerApi {
                     accessTokenRequest.scope ?: ""
                 ).filter { requestedScope -> credential.scopes?.contains(requestedScope) == true }
 
-                val ownerId = credential.applicationId ?: credential.userId ?: throw BadRequestException("Credential has no owner")
+                val ownerId = credential.principalId ?: throw BadRequestException("Credential has no owner")
                 val tokenExpiration = authorizationServer.clientCredentialsTokenExpiration ?: 3600L
 
                 Response

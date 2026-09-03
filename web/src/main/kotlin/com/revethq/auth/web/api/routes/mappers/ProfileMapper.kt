@@ -35,11 +35,4 @@ object ProfileMapper {
         }
     }
 
-    @JvmStatic
-    fun toProfile(profile: Map<String, Any>): Profile {
-        return Profile().apply {
-            profileType = ProfileType.Application
-            this.profile = profile
-        }
-    }
 }

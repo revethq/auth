@@ -20,7 +20,6 @@
 package com.revethq.auth.persistence.repositories
 
 import com.revethq.auth.core.domain.Pair
-import com.revethq.auth.core.domain.Application
 import com.revethq.auth.core.domain.AuthorizationServer
 import com.revethq.auth.core.domain.Client
 import com.revethq.auth.core.domain.ClientCode
@@ -50,23 +49,6 @@ class EventRepository : PanacheRepositoryBase<Event, UUID> {
     lateinit var scimEventEmitter: CdiEvent<ScimRelevantEvent>
     // TODO: Figure out how to version things.
     // TODO: DRY event creation, should be easier in Java 21.
-
-    fun createApplicationProfileEvent(applicationAndProfile: Pair<Application, Profile>, eventType: EventType): Event {
-        val event = Event()
-        event.eventType = eventType
-        event.authorizationServerId = applicationAndProfile.left?.authorizationServerId
-        event.resourceType = ResourceType.APPLICATION
-        event.resourceId = applicationAndProfile.left?.id
-        event.createdOn = OffsetDateTime.now()
-
-        event.resource = mapOf(
-            "application" to convertToMap(applicationAndProfile.left),
-            "profile" to convertToMap(applicationAndProfile.right?.profile)
-        )
-
-        persist(event)
-        return event
-    }
 
     fun createAuthorizationServerEvent(authorizationServer: AuthorizationServer, eventType: EventType): Event {
         val event = Event()
@@ -289,13 +271,6 @@ class EventRepository : PanacheRepositoryBase<Event, UUID> {
                 map["redirectUri"] = obj.redirectUri ?: ""
                 map["createdOn"] = obj.createdOn?.toString() ?: ""
                 // code, codeChallenge, codeChallengeMethod, nonce, state intentionally excluded
-            }
-            is Application -> {
-                map["id"] = obj.id?.toString() ?: ""
-                map["clientId"] = obj.clientId ?: ""
-                map["name"] = obj.name ?: ""
-                map["authorizationServerId"] = obj.authorizationServerId?.toString() ?: ""
-                map["createdOn"] = obj.createdOn?.toString() ?: ""
             }
             is Client -> {
                 map["id"] = obj.id?.toString() ?: ""

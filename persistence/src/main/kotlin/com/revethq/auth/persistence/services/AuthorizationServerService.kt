@@ -148,7 +148,7 @@ class AuthorizationServerService(
     @Transactional
     override fun generateClientCredentialsAccessToken(
         authorizationServerId: UUID,
-        applicationId: UUID,
+        principalId: UUID,
         subject: String,
         scopes: List<Scope>,
         expiresInSeconds: Long
@@ -157,7 +157,7 @@ class AuthorizationServerService(
             .findByIdOptional(authorizationServerId)
             .orElseThrow()
 
-        val profile = profileRepository.findByResourceId(applicationId)
+        val profile = profileRepository.findByResourceId(principalId)
             .map { ProfileMapper.from(it) }
             .orElseThrow { ProfileNotFound() }
 
@@ -462,7 +462,7 @@ class AuthorizationServerService(
             val scope = Scope()
             scope.name = scopeName
             scope.authorizationServer = authorizationServer
-            val metadata = Metadata(emptyList(), null, emptyMap())
+            val metadata = Metadata()
             scope.metadata = metadata
             scopeService.createScope(scope)
         }
@@ -476,7 +476,7 @@ class AuthorizationServerService(
                 template.template = Base64.getEncoder().encode(contents.toByteArray())
                 template.templateType = TemplateTypeEnum.LOGIN
                 template.authorizationServerId = authorizationServer.id
-                val metadata = Metadata(emptyList(), null, emptyMap())
+                val metadata = Metadata()
                 template.metadata = metadata
                 val _template = templateService.createTemplate(template)
                 eventRepository.createTemplateEvent(_template, EventType.CREATE)

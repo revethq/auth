@@ -28,23 +28,15 @@ import java.util.UUID
 
 @ApplicationScoped
 class CredentialRepository : PanacheRepositoryBase<Credential, UUID> {
-    fun findByUserId(userId: UUID): List<Credential> {
-        return list("userId", userId)
+    fun findByPrincipalId(principalId: UUID): List<Credential> {
+        return list("principalId", principalId)
     }
 
-    fun findByApplicationId(applicationId: UUID): List<Credential> {
-        return list("applicationId", applicationId)
+    fun findByPrincipalIdAndType(principalId: UUID, type: CredentialType): List<Credential> {
+        return list("principalId = ?1 and type = ?2", principalId, type)
     }
 
-    fun findByUserIdAndType(userId: UUID, type: CredentialType): List<Credential> {
-        return list("userId = ?1 and type = ?2", userId, type)
-    }
-
-    fun findByApplicationIdAndType(applicationId: UUID, type: CredentialType): List<Credential> {
-        return list("applicationId = ?1 and type = ?2", applicationId, type)
-    }
-
-    fun findActiveByUserIdAndType(userId: UUID, type: CredentialType): List<Credential> {
-        return list("userId = ?1 and type = ?2 and status = ?3", userId, type, CredentialStatus.ACTIVE)
+    fun findActiveByPrincipalIdAndType(principalId: UUID, type: CredentialType): List<Credential> {
+        return list("principalId = ?1 and type = ?2 and status = ?3", principalId, type, CredentialStatus.ACTIVE)
     }
 }

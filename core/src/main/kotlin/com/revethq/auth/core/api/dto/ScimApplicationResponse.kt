@@ -37,8 +37,8 @@ data class ScimApplicationResponse(
     @field:JsonbProperty("authorizationServerId")
     var authorizationServerId: UUID? = null,
 
-    @field:JsonbProperty("applicationId")
-    var applicationId: UUID? = null,
+    @field:JsonbProperty("serviceAccountId")
+    var serviceAccountId: UUID? = null,
 
     @field:JsonbProperty("name")
     var name: String? = null,
@@ -68,7 +68,7 @@ data class ScimApplicationResponse(
     var updatedOn: OffsetDateTime? = null,
 
     /**
-     * Application credentials returned only when an Application was auto-created.
+     * Credentials returned only when a ServiceAccount was auto-created.
      * This is the only time the raw secret value is available.
      */
     @field:JsonbProperty("credentials")
@@ -76,18 +76,18 @@ data class ScimApplicationResponse(
 )
 
 /**
- * Credentials returned when an Application is auto-created for a SCIM application.
+ * Credentials returned when a ServiceAccount is auto-created for a SCIM application.
  */
 @JsonbNillable(false)
 data class ScimApplicationCredentials(
-    @field:JsonbProperty("applicationSecretId")
-    var applicationSecretId: UUID? = null,
+    @field:JsonbProperty("credentialId")
+    var credentialId: UUID? = null,
 
     /**
-     * The raw application secret. This is only returned once during creation.
+     * The raw credential secret. This is only returned once during creation.
      */
-    @field:JsonbProperty("applicationSecret")
-    var applicationSecret: String? = null
+    @field:JsonbProperty("credentialSecret")
+    var credentialSecret: String? = null
 )
 
 /**

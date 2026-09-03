@@ -32,7 +32,7 @@ object ScimApplicationMapper {
         return DomainScimApplication(
             id = entity.id,
             authorizationServerId = entity.authorizationServerId,
-            applicationId = entity.applicationId,
+            serviceAccountId = entity.serviceAccountId,
             name = entity.name,
             baseUrl = entity.baseUrl,
             attributeMapping = entity.attributeMapping,
@@ -50,7 +50,7 @@ object ScimApplicationMapper {
         return EntityScimApplication().apply {
             id = domain.id
             authorizationServerId = domain.authorizationServerId
-            applicationId = domain.applicationId
+            serviceAccountId = domain.serviceAccountId
             name = domain.name
             baseUrl = domain.baseUrl
             attributeMapping = domain.attributeMapping

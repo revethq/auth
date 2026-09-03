@@ -39,10 +39,10 @@ data class ScimApplication(
     var authorizationServerId: UUID? = null,
 
     /**
-     * Link to the Application entity used for JWT-based authentication.
-     * The Application's credentials are used to generate tokens for SCIM requests.
+     * Link to the ServiceAccount entity used for JWT-based authentication.
+     * The ServiceAccount's credentials are used to generate tokens for SCIM requests.
      */
-    var applicationId: UUID? = null,
+    var serviceAccountId: UUID? = null,
 
     /**
      * Human-readable name for this SCIM application.

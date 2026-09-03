@@ -38,10 +38,10 @@ data class ScimApplicationRequest(
     var authorizationServerId: UUID? = null,
 
     /**
-     * Optional Application ID for JWT-based authentication.
-     * If not provided and autoCreateApplication=true, an Application will be auto-created.
+     * Optional ServiceAccount ID for JWT-based authentication.
+     * If not provided and autoCreateServiceAccount=true, a ServiceAccount will be auto-created.
      */
-    var applicationId: UUID? = null,
+    var serviceAccountId: UUID? = null,
 
     /**
      * Human-readable name for this SCIM application.
@@ -85,10 +85,10 @@ data class ScimApplicationRequest(
     var enabled: Boolean? = true,
 
     /**
-     * Whether to auto-create an Application if applicationId is not provided.
+     * Whether to auto-create a ServiceAccount if serviceAccountId is not provided.
      * Defaults to true.
      */
-    var autoCreateApplication: Boolean? = true
+    var autoCreateServiceAccount: Boolean? = true
 )
 
 /**

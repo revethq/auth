@@ -19,26 +19,25 @@
 
 package com.revethq.auth.persistence.services
 
-import com.revethq.auth.core.domain.Application
 import com.revethq.auth.core.domain.Credential
 import com.revethq.auth.core.domain.CredentialType
 import com.revethq.auth.core.domain.Page
 import com.revethq.auth.core.domain.Profile
 import com.revethq.auth.core.domain.ScimApplication
 import com.revethq.auth.core.exceptions.badrequests.ScimApplicationInvalidScopes
-import com.revethq.auth.core.exceptions.notfound.ApplicationNotFound
 import com.revethq.auth.core.exceptions.notfound.ScimApplicationNotFound
+import com.revethq.auth.core.exceptions.notfound.ServiceAccountNotFound
 import com.revethq.auth.core.scim.ScimOperation
 import com.revethq.auth.core.scim.ScimScopes
-import com.revethq.auth.core.services.ApplicationService
 import com.revethq.auth.core.services.CredentialService
 import com.revethq.auth.core.services.ScimApplicationCreateResult
 import com.revethq.auth.core.services.ScimScopeService
+import com.revethq.auth.core.services.ServiceAccountService
 import com.revethq.auth.persistence.entities.mappers.ScimApplicationMapper
-import com.revethq.auth.persistence.repositories.ApplicationRepository
 import com.revethq.auth.persistence.repositories.ScimApplicationRepository
 import com.revethq.auth.persistence.repositories.ScimDeliveryStatusRepository
 import com.revethq.auth.persistence.repositories.ScimResourceMappingRepository
+import com.revethq.iam.serviceaccount.domain.ServiceAccount
 import io.quarkus.panache.common.Sort
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.Transactional
@@ -51,8 +50,7 @@ class ScimApplicationService(
     private val scimApplicationRepository: ScimApplicationRepository,
     private val scimDeliveryStatusRepository: ScimDeliveryStatusRepository,
     private val scimResourceMappingRepository: ScimResourceMappingRepository,
-    private val applicationRepository: ApplicationRepository,
-    private val applicationService: ApplicationService,
+    private val serviceAccountService: ServiceAccountService,
     private val credentialService: CredentialService,
     private val scimScopeService: ScimScopeService
 ) : com.revethq.auth.core.services.ScimApplicationService {
@@ -91,7 +89,7 @@ class ScimApplicationService(
     @Transactional
     override fun createScimApplication(
         scimApplication: ScimApplication,
-        autoCreateApplication: Boolean
+        autoCreateServiceAccount: Boolean
     ): ScimApplicationCreateResult {
         val authorizationServerId = scimApplication.authorizationServerId
             ?: throw IllegalArgumentException("Authorization server ID is required")
@@ -104,27 +102,27 @@ class ScimApplicationService(
 
         var credential: Credential? = null
 
-        // Handle Application association
-        val applicationId = if (scimApplication.applicationId != null) {
-            // Validate existing application has required scopes
-            validateApplicationScopes(scimApplication.applicationId!!, enabledOperations)
-            scimApplication.applicationId!!
-        } else if (autoCreateApplication) {
-            // Auto-create application with SCIM scopes
-            val (appId, secret) = createScimApplication(
+        // Handle ServiceAccount association
+        val serviceAccountId = if (scimApplication.serviceAccountId != null) {
+            // Validate existing service account has required scopes
+            validateServiceAccountScopes(scimApplication.serviceAccountId!!, enabledOperations)
+            scimApplication.serviceAccountId!!
+        } else if (autoCreateServiceAccount) {
+            // Auto-create service account with SCIM scopes
+            val (saId, secret) = createScimServiceAccount(
                 authorizationServerId = authorizationServerId,
                 scimAppName = scimApplication.name ?: "SCIM Application",
                 operations = enabledOperations
             )
             credential = secret
-            appId
+            saId
         } else {
-            throw IllegalArgumentException("Application ID is required when autoCreateApplication is false")
+            throw IllegalArgumentException("Service account ID is required when autoCreateServiceAccount is false")
         }
 
         // Create the SCIM application
         val entity = ScimApplicationMapper.to(scimApplication.copy(
-            applicationId = applicationId,
+            serviceAccountId = serviceAccountId,
             enabledOperations = enabledOperations,
             attributeMapping = scimApplication.attributeMapping ?: ScimApplication.DEFAULT_USER_ATTRIBUTE_MAPPING,
             createdOn = OffsetDateTime.now(),
@@ -149,9 +147,9 @@ class ScimApplicationService(
         // Validate scopes if operations changed
         val newOperations = scimApplication.enabledOperations ?: entity.enabledOperations ?: ALL_OPERATIONS
         if (newOperations != entity.enabledOperations) {
-            val applicationId = scimApplication.applicationId ?: entity.applicationId
-            if (applicationId != null) {
-                validateApplicationScopes(applicationId, newOperations)
+            val serviceAccountId = scimApplication.serviceAccountId ?: entity.serviceAccountId
+            if (serviceAccountId != null) {
+                validateServiceAccountScopes(serviceAccountId, newOperations)
             }
         }
 
@@ -191,20 +189,14 @@ class ScimApplicationService(
         scimScopeService.ensureScimScopes(authorizationServerId)
     }
 
-    private fun validateApplicationScopes(applicationId: UUID, operations: Set<ScimOperation>) {
-        val application = applicationRepository.findByIdOptional(applicationId)
-            .orElseThrow { ApplicationNotFound() }
-
-        val applicationScopeNames = application.scopes.mapNotNull { it.name }.toSet()
-        val requiredScopeNames = ScimScopes.getRequiredScopes(operations)
-        val missingScopeNames = requiredScopeNames - applicationScopeNames
-
-        if (missingScopeNames.isNotEmpty()) {
-            throw ScimApplicationInvalidScopes(missingScopeNames)
+    private fun validateServiceAccountScopes(serviceAccountId: UUID, operations: Set<ScimOperation>) {
+        if (!scimScopeService.validateServiceAccountScopes(serviceAccountId, operations)) {
+            val requiredScopeNames = ScimScopes.getRequiredScopes(operations)
+            throw ScimApplicationInvalidScopes(requiredScopeNames)
         }
     }
 
-    private fun createScimApplication(
+    private fun createScimServiceAccount(
         authorizationServerId: UUID,
         scimAppName: String,
         operations: Set<ScimOperation>
@@ -212,23 +204,24 @@ class ScimApplicationService(
         // Get the required scopes
         val requiredScopes = scimScopeService.getScopesForOperations(authorizationServerId, operations)
 
-        // Create the Application
-        val application = Application(
-            authorizationServerId = authorizationServerId,
-            clientId = "scim-client-${UUID.randomUUID().toString().take(8)}",
+        // Create the ServiceAccount
+        val serviceAccount = ServiceAccount(
+            id = UUID.randomUUID(),
             name = "$scimAppName SCIM Client",
-            scopes = requiredScopes
+            tenantId = authorizationServerId.toString()
         )
 
         val profile = Profile()
         profile.profile = emptyMap()
 
-        val result = applicationService.createApplication(application, profile)
-        val createdApp = result.left ?: throw RuntimeException("Failed to create application")
+        val result = serviceAccountService.createServiceAccount(
+            serviceAccount, profile, requiredScopes.mapNotNull { it.id }
+        )
+        val createdSa = result.left ?: throw RuntimeException("Failed to create service account")
 
-        // Create a Credential for the application
+        // Create a Credential for the service account
         val credential = Credential(
-            applicationId = createdApp.id,
+            principalId = createdSa.id,
             authorizationServerId = authorizationServerId,
             type = CredentialType.API_KEY,
             name = "SCIM Client Secret",
@@ -237,8 +230,8 @@ class ScimApplicationService(
 
         val createdCredential = credentialService.createCredential(credential)
 
-        LOG.info("Auto-created Application ${createdApp.id} with SCIM scopes for SCIM application")
+        LOG.info("Auto-created ServiceAccount ${createdSa.id} with SCIM scopes for SCIM application")
 
-        return Pair(createdApp.id!!, createdCredential)
+        return Pair(createdSa.id, createdCredential)
     }
 }

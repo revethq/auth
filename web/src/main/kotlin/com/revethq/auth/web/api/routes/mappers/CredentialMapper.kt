@@ -30,8 +30,7 @@ object CredentialMapper {
     @JvmStatic
     fun from(request: CredentialRequest): Credential {
         return Credential(
-            userId = request.userId,
-            applicationId = request.applicationId,
+            principalId = request.principalId,
             authorizationServerId = request.authorizationServerId,
             type = request.type?.let { CredentialType.valueOf(it) },
             credentialValue = request.value,
@@ -45,8 +44,7 @@ object CredentialMapper {
     fun toResponse(credential: Credential): CredentialResponse {
         return CredentialResponse().apply {
             id = credential.id
-            userId = credential.userId
-            applicationId = credential.applicationId
+            principalId = credential.principalId
             authorizationServerId = credential.authorizationServerId
             type = credential.type?.name
             status = credential.status?.name

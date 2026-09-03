@@ -24,8 +24,7 @@ import java.util.*
 
 data class Credential(
     var id: UUID? = null,
-    var userId: UUID? = null,
-    var applicationId: UUID? = null,
+    var principalId: UUID? = null,
     var authorizationServerId: UUID? = null,
     var type: CredentialType? = null,
     var status: CredentialStatus? = null,

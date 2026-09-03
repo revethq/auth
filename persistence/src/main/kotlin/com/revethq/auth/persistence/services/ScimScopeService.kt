@@ -23,10 +23,10 @@ import com.revethq.auth.core.domain.Scope
 import com.revethq.auth.core.scim.ScimOperation
 import com.revethq.auth.core.scim.ScimScopes
 import com.revethq.auth.core.services.ScopeService
-import com.revethq.auth.persistence.repositories.ApplicationRepository
+import com.revethq.auth.persistence.entities.ScopeReference
 import com.revethq.auth.persistence.repositories.AuthorizationServerRepository
+import com.revethq.auth.persistence.repositories.ScopeReferenceRepository
 import com.revethq.auth.persistence.repositories.ScopeRepository
-import com.revethq.auth.persistence.entities.mappers.AuthorizationServerMapper
 import com.revethq.auth.persistence.entities.mappers.ScopeMapper
 import jakarta.enterprise.context.ApplicationScoped
 import jakarta.transaction.Transactional
@@ -39,7 +39,7 @@ import com.revethq.auth.persistence.entities.Scope as ScopeEntity
 class ScimScopeService(
     private val scopeRepository: ScopeRepository,
     private val authorizationServerRepository: AuthorizationServerRepository,
-    private val applicationRepository: ApplicationRepository
+    private val scopeReferenceRepository: ScopeReferenceRepository
 ) : com.revethq.auth.core.services.ScimScopeService {
 
     companion object {
@@ -94,13 +94,19 @@ class ScimScopeService(
     }
 
     @Transactional
-    override fun validateApplicationScopes(applicationId: UUID, operations: Set<ScimOperation>): Boolean {
-        val application = applicationRepository.findByIdOptional(applicationId)
-            .orElse(null) ?: return false
+    override fun validateServiceAccountScopes(serviceAccountId: UUID, operations: Set<ScimOperation>): Boolean {
+        val scopeRefs = scopeReferenceRepository.find(
+            "resourceId = ?1 and scopeReferenceType = ?2",
+            serviceAccountId,
+            ScopeReference.ScopeReferenceType.SERVICE_ACCOUNT
+        ).list<ScopeReference>()
 
-        val applicationScopeNames = application.scopes.mapNotNull { it.name }.toSet()
+        val scopeIds = scopeRefs.mapNotNull { it.scopeId }.toSet()
+        val scopeNames = scopeIds.mapNotNull { scopeId ->
+            scopeRepository.findByIdOptional(scopeId).orElse(null)?.name
+        }.toSet()
+
         val requiredScopeNames = ScimScopes.getRequiredScopes(operations)
-
-        return applicationScopeNames.containsAll(requiredScopeNames)
+        return scopeNames.containsAll(requiredScopeNames)
     }
 }

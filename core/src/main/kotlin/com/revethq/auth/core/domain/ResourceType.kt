@@ -13,5 +13,6 @@ enum class ResourceType {
     USER,
     // New types added at the end to preserve ordinal compatibility
     GROUP,
-    GROUP_MEMBER
+    GROUP_MEMBER,
+    SERVICE_ACCOUNT
 }
